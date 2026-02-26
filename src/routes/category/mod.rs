@@ -1,27 +1,25 @@
-pub mod category;
-pub mod users;
+pub mod get;
+pub mod post;
 
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
+    routes,
 };
 
-use crate::routes::category::CategoryFairing;
-use crate::routes::users::UsersFairing;
-
-pub struct AllRouteFairing;
+pub struct CategoryFairing;
 
 #[async_trait]
-impl Fairing for AllRouteFairing {
+impl Fairing for CategoryFairing {
     fn info(&self) -> Info {
         Info {
-            name: "All route fairing",
+            name: "Category route fairing",
             kind: Kind::Ignite,
         }
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
-        let r = r.attach(UsersFairing).attach(CategoryFairing);
+        let r = r.mount("/api/category", routes![get::get_all, post::post]);
 
         Ok(r)
     }

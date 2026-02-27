@@ -1,27 +1,26 @@
-use dtos::category::put::CategoryPutDto;
-
+use dtos::tag::put::TagPutDto;
 use rocket::{State, put, response::status::NoContent, serde::json::Json};
-use sea_orm::{DbConn, EntityTrait};
-use services::category_service::CategoryService;
+use sea_orm::DbConn;
 use services::service_trait::ServiceTrait;
+use services::tag_service::TagService;
 
 use crate::responder::Responder;
 
 #[put("/<id>", format = "application/json", data = "<data>")]
 pub async fn put(
     id: i32,
-    data: Json<CategoryPutDto>,
+    data: Json<TagPutDto>,
     db: &State<DbConn>,
 ) -> Result<NoContent, Responder> {
     let db = db.inner();
-    let category = data.into_inner();
-    let service = CategoryService(db);
+    let service = TagService(db);
+    let tag = data.into_inner();
 
-    if id != category.id {
+    if tag.id != id {
         return Err(Responder::bad_request("Specified id doesn't match with id"));
     }
 
-    let _ = service.update(category).await?;
+    let _ = service.update(tag).await?;
 
     Ok(NoContent)
 }

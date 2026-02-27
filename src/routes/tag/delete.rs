@@ -1,23 +1,23 @@
 use chrono::Utc;
-use entity::{active_action::ActiveAction, category};
+use entity::{active_action::ActiveAction, tag};
 use rocket::{State, delete, response::status::NoContent};
 use sea_orm::DbConn;
-use services::{category_service::CategoryService, service_trait::ServiceTrait};
+use services::{service_trait::ServiceTrait, tag_service::TagService};
 
 use crate::responder::Responder;
 
 #[delete("/<id>")]
 pub async fn delete(id: i32, db: &State<DbConn>) -> Result<NoContent, Responder> {
     let db = db.inner();
-    let service = CategoryService(db);
+    let service = TagService(db);
     let now = Utc::now().naive_local();
 
     let _ = service
         .update(
-            category::ActiveModel::builder()
-                .set_id(id)
+            tag::ActiveModel::builder()
                 .modifying()
-                .set_deleted_at(Some(now)),
+                .set_id(id)
+                .set_deleted_at(now),
         )
         .await?;
 

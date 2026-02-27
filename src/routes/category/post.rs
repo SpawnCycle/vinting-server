@@ -8,6 +8,7 @@ use rocket::{
     serde::json::Json,
 };
 use sea_orm::DbConn;
+use services::{category_service::CategoryService, service_trait::ServiceTrait};
 
 use crate::responder::Responder;
 
@@ -18,13 +19,10 @@ pub async fn post(
     data: Json<CategoryPostDto>,
 ) -> Result<Created<Json<CategoryGetDto>>, Responder> {
     let db = db.inner();
-    let data = data.into_inner();
-    let data_entry = category::ActiveModelEx::from(data);
+    let category = data.into_inner();
+    let service = CategoryService(db);
 
-    let return_var = data_entry.insert(db).await?;
+    let model = service.insert(category).await?;
 
-    Ok(
-        Created::new(format!("{host}/api/category/{}", return_var.id))
-            .body(Json(return_var.into())),
-    )
+    Ok(Created::new(format!("{host}/api/categories/{}", model.id)).body(Json(model.into())))
 }

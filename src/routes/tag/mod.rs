@@ -9,20 +9,20 @@ use rocket::{
     routes,
 };
 
-pub struct CategoryFairing;
+pub struct TagFairing;
 
 #[async_trait]
-impl Fairing for CategoryFairing {
+impl Fairing for TagFairing {
     fn info(&self) -> Info {
         Info {
-            name: "Category route fairing",
+            name: "Tag route fairing",
             kind: Kind::Ignite,
         }
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
         let r = r.mount(
-            "/api/categories",
+            "/api/tags",
             routes![
                 get::get_all,
                 get::get_single,

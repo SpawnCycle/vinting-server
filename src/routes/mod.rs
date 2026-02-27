@@ -1,4 +1,5 @@
 pub mod category;
+pub mod tag;
 pub mod users;
 
 use rocket::{

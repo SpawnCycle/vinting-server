@@ -1,8 +1,6 @@
-use std::sync::LazyLock;
-
 use chrono::{Duration, Local};
 use jsonwebtoken::{
-    Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
+    DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
 };
 use rocket::{
     Request, async_trait,
@@ -12,9 +10,7 @@ use rocket::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-pub const JWT_STR: &str = "JWT";
-
-pub static JWT_KEY: LazyLock<&str> = LazyLock::new(|| "");
+use crate::constants::{JWT_KEY, JWT_STR};
 
 /// This is the struct used inside the JWT
 /// It implements FromRequest, so you can check if a user is signed in with the following:
@@ -34,17 +30,17 @@ pub static JWT_KEY: LazyLock<&str> = LazyLock::new(|| "");
 /// you still need to verify if the user exists
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JwtClaims {
-    exp: i64,
-    iat: i64,
-    uid: i32,
+    pub exp: i64,
+    pub iat: i64,
+    pub uid: i32,
 }
 
 #[derive(Debug, Clone, Error)]
 pub enum JwtError {
     #[error("Could not find a jwt")]
     Missing,
-    #[error("There was an error during jwt parsing: {0}")]
-    Decoding(String),
+    #[error("JWT cookie could not be parsed: {0}")]
+    Malformed(String),
     #[error("The jwt has expired")]
     Expired,
 }
@@ -55,18 +51,26 @@ impl<'a> FromRequest<'a> for JwtClaims {
 
     async fn from_request(request: &'a Request<'_>) -> Outcome<Self, Self::Error> {
         let jar = request.cookies();
-        let Some(jwt) = jar.get("jwt") else {
+        let Some(jwt) = jar.get(JWT_STR) else {
             return Outcome::Error((Status::Unauthorized, JwtError::Missing));
+        };
+        let jwt = jwt.to_string();
+
+        let Some((_key, jwt)) = jwt.split_once("=") else {
+            return Outcome::Error((
+                Status::Unauthorized,
+                JwtError::Malformed("The JWT cookie has no value".to_string()),
+            ));
         };
 
         let res = decode::<JwtClaims>(
-            jwt.to_string(),
-            &DecodingKey::from_rsa_der(&[]),
+            jwt,
+            &DecodingKey::from_secret(JWT_KEY.as_ref()),
             &Validation::default(),
         )
         .map_err(|err| match err.clone().into_kind() {
             ErrorKind::ExpiredSignature => (Status::Unauthorized, JwtError::Expired),
-            _ => (Status::Unauthorized, JwtError::Decoding(err.to_string())),
+            _ => (Status::Unauthorized, JwtError::Malformed(err.to_string())),
         });
 
         let jwt = match res {
@@ -79,9 +83,6 @@ impl<'a> FromRequest<'a> for JwtClaims {
 }
 
 pub fn make_jwt(uid: i32, _secret: String) -> Result<String, jsonwebtoken::errors::Error> {
-    let mut header = Header::new(Algorithm::HS256);
-    header.typ = Some(JWT_STR.to_string());
-
     let now = Local::now();
     let iat = now.timestamp();
     let exp = (now + Duration::days(30)).timestamp();
@@ -89,5 +90,9 @@ pub fn make_jwt(uid: i32, _secret: String) -> Result<String, jsonwebtoken::error
     let claims = JwtClaims { exp, iat, uid };
 
     // TODO: key
-    encode(&header, &claims, &EncodingKey::from_rsa_der(&[]))
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(JWT_KEY.as_ref()),
+    )
 }

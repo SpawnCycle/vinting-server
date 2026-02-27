@@ -1,22 +1,21 @@
-use argon2::Argon2;
-use argon2::PasswordVerifier;
+use argon2::{Argon2, PasswordVerifier};
 use dtos::user::{get::UserGetDto, post::UserPostDto};
-use entity::prelude::*;
-use entity::user;
-use rocket::FromForm;
-use rocket::form::Form;
-use rocket::http::CookieJar;
-use rocket::response::status::NoContent;
-use rocket::{State, http::uri::Host, post, response::status::Created, serde::json::Json};
+use rocket::{
+    FromForm, State,
+    form::Form,
+    http::{Cookie, CookieJar, uri::Host},
+    post,
+    response::status::{Created, NoContent},
+    serde::json::Json,
+};
 use sea_orm::DbConn;
-use sea_orm::SelectExt;
-use services::service_trait::ServiceFilter;
-use services::user_service::UserService;
+use services::{service_trait::ServiceTrait, user_service::UserService};
 
-use crate::responder::Responder;
-use crate::routes::users::jwt::JWT_KEY;
-use crate::routes::users::jwt::JWT_STR;
-use crate::routes::users::jwt::make_jwt;
+use crate::{
+    constants::{JWT_KEY, JWT_STR},
+    responder::Responder,
+    routes::users::jwt::make_jwt,
+};
 
 #[derive(Debug, Clone, FromForm)]
 pub struct LoginDetails<'a> {
@@ -33,19 +32,15 @@ pub async fn signup(
 ) -> Result<Created<Json<UserGetDto>>, Responder> {
     let db = db.inner();
     let user = data.into_inner();
+    let service = UserService(db);
 
-    if User::find_by_email(user.email.clone())
-        .service_filter::<UserService>()
-        .exists(db)
-        .await?
-    {
+    if service.exists_by_email(user.email.clone()).await? {
         return Err(Responder::bad_request(
             "A user with that email already exists",
         ));
     }
 
-    let am = user::ActiveModelEx::from(user);
-    let user = am.insert(db).await?;
+    let user = service.insert(user).await?;
 
     add_jwt_to_jar(user.id, jar)?;
 
@@ -59,10 +54,10 @@ pub async fn login(
     jar: &CookieJar<'_>,
 ) -> Result<NoContent, Responder> {
     let db = db.inner();
+    let service = UserService(db);
 
-    let user = User::find_by_email(data.email)
-        .service_filter::<UserService>()
-        .one(db)
+    let user = service
+        .get_by_email(data.email)
         .await?
         .ok_or(Responder::not_found(
             "There is no user with the given email",
@@ -86,7 +81,11 @@ fn add_jwt_to_jar(uid: i32, jar: &CookieJar<'_>) -> Result<(), jsonwebtoken::err
     // TODO: key
     let jwt = make_jwt(uid, JWT_KEY.to_string())?;
 
-    jar.add((JWT_STR, jwt));
+    log::info!("JWT: {jwt}");
+
+    let cookie = Cookie::build((JWT_STR, jwt)).http_only(true);
+
+    jar.add(cookie);
 
     Ok(())
 }

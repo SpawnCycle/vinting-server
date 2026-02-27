@@ -1,3 +1,5 @@
+use std::env;
+
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
@@ -30,7 +32,7 @@ impl Fairing for DatabaseFairing {
             Ok(conn) => {
                 let db = DatabaseConnection::from(conn);
                 if let Err(err) = db.get_schema_registry("entity::*").sync(&db).await {
-                    log::error!("{err}");
+                    log::error!("Error while syncing db: {err}");
                     return Err(r);
                 }
                 Ok(r.manage(db))
@@ -40,9 +42,23 @@ impl Fairing for DatabaseFairing {
 }
 
 async fn connect_db() -> Result<SqlitePool, SqlxError> {
-    let opts = SqliteConnectOptions::new()
-        .filename("./vinting.db") // TODO: maybe change in the future?
-        .create_if_missing(true);
+    let use_memory = cfg!(debug_assertions) && env::var("INMEMORY").is_ok();
+    let opts = if use_memory {
+        SqliteConnectOptions::new()
+            .in_memory(true)
+            .shared_cache(true)
+            .create_if_missing(true)
+    } else {
+        SqliteConnectOptions::new()
+            .filename("./vinting.db") // TODO: maybe change in the future?
+            .create_if_missing(true)
+    };
 
-    SqlitePoolOptions::new().connect_with(opts).await
+    let pool_opts = if use_memory {
+        SqlitePoolOptions::new().max_connections(1)
+    } else {
+        SqlitePoolOptions::new()
+    };
+
+    pool_opts.connect_with(opts).await
 }

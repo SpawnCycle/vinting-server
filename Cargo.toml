@@ -50,5 +50,6 @@ argon2 = { workspace = true }
 
 rocket = { version = "0.5.1", features = ["secrets", "json"] }
 tokio = { version = "1.49.0", features = ["full"] }
-jsonwebtoken = "10.3.0"
+jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 chrono = "0.4.44"
+dotenvy = "0.15.7"

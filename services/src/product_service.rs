@@ -1,8 +1,8 @@
 use crate::service_trait::ServiceTrait;
 use entity::product;
-use sea_orm::{ColumnTrait, Condition, DatabaseConnection};
+use sea_orm::{ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityTrait};
 
-pub struct ProductService<'a>(&'a DatabaseConnection);
+pub struct ProductService<'a>(pub &'a DatabaseConnection);
 
 impl ServiceTrait for ProductService<'_> {
     type Entity = product::Entity;
@@ -22,5 +22,19 @@ impl ServiceTrait for ProductService<'_> {
 
     fn get_db(&self) -> &DatabaseConnection {
         self.0
+    }
+
+    fn insert_active_model_ex(
+        am: <Self::Entity as EntityTrait>::ActiveModelEx,
+        db: &DbConn,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        am.insert(db)
+    }
+
+    fn update_active_model_ex(
+        am: <Self::Entity as EntityTrait>::ActiveModelEx,
+        db: &DbConn,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        am.update(db)
     }
 }

@@ -1,10 +1,11 @@
 mod filter;
 
+use entity::active_action::ActiveAction;
 pub use filter::*;
 
 use sea_orm::{
-    Condition, DatabaseConnection, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter, Select,
-    SelectExt, prelude::async_trait::async_trait,
+    Condition, DatabaseConnection, DbConn, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter,
+    Select, SelectExt, prelude::async_trait::async_trait,
 };
 
 /// trait for getting tables via service
@@ -16,6 +17,8 @@ use sea_orm::{
 ///  - `default_filters` (returns the filters the queries should run with by default)
 ///  - `iter_filter` (ideally should be the same as `default_filters`, but for use with iterators)
 ///  - `get_db` (returns the db the queries should be run with)
+///  - `insert_active_model_ex` (exposes the new `ActiveModelEx`'s insert function)
+///  - `update_active_model_ex` (exposes the new `ActiveModelEx`'s update function)
 #[async_trait]
 pub trait ServiceTrait {
     type Entity: EntityTrait;
@@ -25,6 +28,16 @@ pub trait ServiceTrait {
     fn iter_filter<M>(m: M) -> bool
     where
         M: Into<<Self::Entity as EntityTrait>::Model>;
+
+    fn insert_active_model_ex(
+        am: <Self::Entity as EntityTrait>::ActiveModelEx,
+        db: &DbConn,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send;
+
+    fn update_active_model_ex(
+        am: <Self::Entity as EntityTrait>::ActiveModelEx,
+        db: &DbConn,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send;
 
     // general use functions
 
@@ -49,6 +62,32 @@ pub trait ServiceTrait {
 
     async fn get_all(&self) -> Result<Vec<<Self::Entity as EntityTrait>::Model>, DbErr> {
         self.get_all_raw(Some(Self::default_filters()), |q| q).await
+    }
+
+    async fn insert<M>(
+        &self,
+        active_model: M,
+    ) -> Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>
+    where
+        M: Into<<Self::Entity as EntityTrait>::ActiveModelEx> + Send,
+        <Self::Entity as EntityTrait>::ActiveModelEx: ActiveAction + Send,
+    {
+        let am = active_model.into() as <Self::Entity as EntityTrait>::ActiveModelEx;
+
+        Self::insert_active_model_ex(am.creating(), self.get_db()).await
+    }
+
+    async fn update<M>(
+        &self,
+        active_model: M,
+    ) -> Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>
+    where
+        M: Into<<Self::Entity as EntityTrait>::ActiveModelEx> + Send,
+        <Self::Entity as EntityTrait>::ActiveModelEx: ActiveAction + Send,
+    {
+        let am = active_model.into() as <Self::Entity as EntityTrait>::ActiveModelEx;
+
+        Self::update_active_model_ex(am.modifying(), self.get_db()).await
     }
 
     // 'raw'/extended use functions
@@ -113,11 +152,11 @@ pub trait ServiceTrait {
 
 #[cfg(test)]
 mod test {
-    use sea_orm::QueryOrder;
     use sea_orm::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, Database, DatabaseConnection,
         DbErr, sea_query::prelude::Utc,
     };
+    use sea_orm::{DbConn, EntityTrait, QueryOrder};
     use std::ops::Not;
 
     use super::ServiceTrait;
@@ -145,6 +184,20 @@ mod test {
 
         fn get_db(&self) -> &DatabaseConnection {
             &self.0
+        }
+
+        fn insert_active_model_ex(
+            am: <Self::Entity as EntityTrait>::ActiveModelEx,
+            db: &DbConn,
+        ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
+            am.insert(db)
+        }
+
+        fn update_active_model_ex(
+            am: <Self::Entity as EntityTrait>::ActiveModelEx,
+            db: &DbConn,
+        ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
+            am.update(db)
         }
     }
 

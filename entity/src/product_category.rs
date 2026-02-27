@@ -23,3 +23,5 @@ pub struct Model {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+crate::active_actions!(ActiveModelEx);

@@ -1,29 +1,22 @@
-pub mod get;
-pub mod jwt;
-pub mod post;
-
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
-    routes,
 };
 
-pub struct UsersFairing;
+pub struct DotenvFairing;
 
 #[async_trait]
-impl Fairing for UsersFairing {
+impl Fairing for DotenvFairing {
     fn info(&self) -> Info {
         Info {
-            name: "Users route fairing",
+            name: "Fairing that imports the .env files",
             kind: Kind::Ignite,
         }
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
-        let r = r.mount(
-            "/api/users",
-            routes![post::signup, post::login, get::jwt_test, get::auth_test],
-        );
+        let _ =
+            dotenvy::dotenv().inspect_err(|err| log::warn!("Couldn't initialize dotenvy: {err}"));
 
         Ok(r)
     }

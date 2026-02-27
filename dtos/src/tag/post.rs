@@ -11,5 +11,3 @@ impl From<TagPostDto> for tag::ActiveModelEx {
         tag::ActiveModel::builder().set_name(t.name)
     }
 }
-
-crate::active_actions!(tag::ActiveModelEx);

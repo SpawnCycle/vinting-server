@@ -11,5 +11,3 @@ impl From<OrderPostDto> for order::ActiveModelEx {
         order::ActiveModel::builder().set_user_id(c.user_id)
     }
 }
-
-crate::active_actions!(order::ActiveModelEx);

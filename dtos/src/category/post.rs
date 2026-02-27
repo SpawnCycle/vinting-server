@@ -14,5 +14,3 @@ impl From<CategoryPostDto> for category::ActiveModelEx {
             .set_created_at(Utc::now().naive_local())
     }
 }
-
-crate::active_actions!(category::ActiveModelEx);

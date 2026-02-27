@@ -42,6 +42,10 @@ impl From<DbErr> for Responder {
 
 impl From<jsonwebtoken::errors::Error> for Responder {
     fn from(e: jsonwebtoken::errors::Error) -> Self {
-        Self::server_error("There was an error with the jwt")
+        if cfg!(debug_assertions) {
+            Self::server_error(&e.to_string())
+        } else {
+            Self::server_error("There was an error with the jwt")
+        }
     }
 }

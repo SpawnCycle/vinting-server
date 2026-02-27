@@ -39,5 +39,3 @@ impl From<ProductPostDto> for product::ActiveModelEx {
         p
     }
 }
-
-crate::active_actions!(product::ActiveModelEx);

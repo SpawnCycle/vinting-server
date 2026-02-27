@@ -26,5 +26,3 @@ impl From<UserPostDto> for user::ActiveModelEx {
             .set_password_hash(pwd_hash)
     }
 }
-
-crate::active_actions!(user::ActiveModelEx);

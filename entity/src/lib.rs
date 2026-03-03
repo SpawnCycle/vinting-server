@@ -7,8 +7,10 @@ pub mod product;
 pub mod product_category;
 pub mod product_image;
 pub mod product_tag;
+pub mod role;
 pub mod tag;
 pub mod user;
+pub mod user_role;
 
 pub mod active_action {
     pub trait ActiveAction {

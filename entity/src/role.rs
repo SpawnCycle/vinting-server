@@ -2,7 +2,7 @@ use sea_orm::entity::prelude::*;
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
-#[sea_orm(table_name = "user")]
+#[sea_orm(table_name = "role")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
@@ -11,17 +11,14 @@ pub struct Model {
     #[sea_orm(indexed)]
     pub deleted_at: Option<DateTime>,
 
-    pub name: String,
     #[sea_orm(unique)]
-    pub email: String,
-    pub password_hash: String,
+    pub name: String,
 
     #[sea_orm(has_many)]
-    pub products: HasMany<super::product::Entity>,
-    #[sea_orm(has_many)]
-    pub orders: HasMany<super::order::Entity>,
-    #[sea_orm(has_many)]
-    pub roles: HasMany<super::role::Entity>,
+    pub user_roles: HasMany<super::user_role::Entity>,
+
+    #[sea_orm(has_many, via = "user_role")]
+    pub users: HasMany<super::user::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

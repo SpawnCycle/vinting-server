@@ -10,7 +10,7 @@ use rocket::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::constants::{JWT_KEY, JWT_STR};
+use crate::constants::{JWT_STR, get_jwt_key};
 
 /// This is the struct used inside the JWT
 /// It implements FromRequest, so you can check if a user is signed in with the following:
@@ -65,7 +65,7 @@ impl<'a> FromRequest<'a> for JwtClaims {
 
         let res = decode::<JwtClaims>(
             jwt,
-            &DecodingKey::from_secret(JWT_KEY.as_ref()),
+            &DecodingKey::from_secret(get_jwt_key().as_ref()),
             &Validation::default(),
         )
         .map_err(|err| match err.clone().into_kind() {
@@ -93,6 +93,6 @@ pub fn make_jwt(uid: i32, _secret: String) -> Result<String, jsonwebtoken::error
     encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(JWT_KEY.as_ref()),
+        &EncodingKey::from_secret(get_jwt_key().as_ref()),
     )
 }

@@ -79,7 +79,10 @@ pub async fn login(
 
 fn add_jwt_to_jar(uid: i32, jar: &CookieJar<'_>) -> Result<(), jsonwebtoken::errors::Error> {
     // TODO: key
-    let jwt = make_jwt(uid, JWT_KEY.to_string())?;
+    let jwt = make_jwt(
+        uid,
+        JWT_KEY.expect("Checked during rocket ignite").to_string(),
+    )?;
 
     log::info!("JWT: {jwt}");
 

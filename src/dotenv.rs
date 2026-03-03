@@ -3,6 +3,9 @@ use rocket::{
     fairing::{self, Fairing, Info, Kind},
 };
 
+/// Environment variables that can be used with .env:
+///     - JWT_KEY: The secret key for jwt
+///     - INMEMORY(only debug): if set launches the memory in memory mode
 pub struct DotenvFairing;
 
 #[async_trait]

@@ -2,9 +2,35 @@ use crate::service_trait::ServiceTrait;
 use entity::tag;
 use sea_orm::{
     ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityTrait, PrimaryKeyTrait,
+    QueryFilter, SelectExt,
 };
 
 pub struct TagService<'a>(pub &'a DatabaseConnection);
+
+impl TagService<'_> {
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn exists_by_name<S>(&self, name: S) -> Result<bool, DbErr>
+    where
+        S: Into<String>,
+    {
+        let name = name.into() as String;
+        tag::Entity::find_by_name(name)
+            .filter(Self::default_filters())
+            .exists(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn exists_by_name_all<S>(&self, name: S) -> Result<bool, DbErr>
+    where
+        S: Into<String>,
+    {
+        let name = name.into() as String;
+        tag::Entity::find_by_name(name).exists(self.get_db()).await
+    }
+}
 
 impl ServiceTrait for TagService<'_> {
     type Entity = tag::Entity;

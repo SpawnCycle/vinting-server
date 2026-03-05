@@ -9,6 +9,8 @@
 //!     post.rs (all of the routes which accept a POST http request)
 //!     put.rs  (all of the routes which accept a PUT http request)
 
+pub mod categories;
+pub mod tags;
 pub mod users;
 
 use rocket::{

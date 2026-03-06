@@ -1,7 +1,6 @@
 use argon2::{Argon2, PasswordHasher};
 use entity::user;
 use serde::Deserialize;
-use std::sync::LazyLock;
 
 use crate::email_string::EmailString;
 

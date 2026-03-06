@@ -27,8 +27,10 @@ pub struct ProductGetDto {
     pub images: Vec<ImageGetDto>,
 }
 
-impl From<product::ModelEx> for ProductGetDto {
-    fn from(m: product::ModelEx) -> Self {
+impl ProductGetDto {
+    // TODO: remove the allow(unused)
+    #[allow(unused)]
+    fn from_model_with_host(m: product::ModelEx, host: &str) -> Self {
         // TODO: Write tests for endpoints so we don't find out in prod that these are not set
         assert!(m.categories.is_loaded());
         assert!(m.tags.is_loaded());
@@ -57,7 +59,7 @@ impl From<product::ModelEx> for ProductGetDto {
                 .images
                 .into_iter()
                 .filter(|m| ImageService::iter_filter(m.clone()))
-                .map(ImageGetDto::from)
+                .map(|m| ImageGetDto::from_model_with_host(m, host))
                 .collect::<Vec<_>>(),
             tags: m
                 .tags

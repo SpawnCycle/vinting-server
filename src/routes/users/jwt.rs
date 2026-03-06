@@ -89,7 +89,6 @@ pub fn make_jwt(uid: i32, _secret: String) -> Result<String, jsonwebtoken::error
 
     let claims = JwtClaims { exp, iat, uid };
 
-    // TODO: key
     encode(
         &Header::default(),
         &claims,

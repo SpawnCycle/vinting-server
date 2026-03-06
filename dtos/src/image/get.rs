@@ -4,8 +4,6 @@ use entity::image;
 use sea_orm::prelude::DateTime;
 use serde::Serialize;
 
-use crate::from_models;
-
 #[derive(Debug, Clone, Serialize)]
 pub struct ImageGetDto {
     pub id: i32,
@@ -15,15 +13,22 @@ pub struct ImageGetDto {
     pub url: String,
 }
 
-from_models!(image, ImageGetDto, m, {
-    let path = PathBuf::from(m.path);
-    let file_name = path.file_name().expect("Malformed image path");
+impl ImageGetDto {
+    /// # Panics
+    /// Panics if the model has a path that doesn't refer to a file
+    pub fn from_model_with_host<M>(m: M, host: &str) -> Self
+    where
+        M: Into<image::Model>,
+    {
+        let m = m.into() as image::Model;
+        let path = PathBuf::from(m.path);
+        let file_name = path.file_name().expect("Malformed image path");
 
-    ImageGetDto {
-        id: m.id,
-        created_at: m.created_at,
-        modified_at: m.modified_at,
-        // TODO: get the server url from a config or something and return an actual link
-        url: format!("/img/{}", file_name.display()),
+        ImageGetDto {
+            id: m.id,
+            created_at: m.created_at,
+            modified_at: m.modified_at,
+            url: format!("{host}/img/{}", file_name.display()),
+        }
     }
-});
+}

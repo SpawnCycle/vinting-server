@@ -12,7 +12,7 @@ use sea_orm::DbConn;
 use services::{service_trait::ServiceTrait, user_service::UserService};
 
 use crate::{
-    constants::{JWT_KEY, JWT_STR},
+    constants::{JWT_STR, get_jwt_key},
     responder::Responder,
     routes::users::jwt::make_jwt,
 };
@@ -76,11 +76,7 @@ pub async fn login(
 }
 
 fn add_jwt_to_jar(uid: i32, jar: &CookieJar<'_>) -> Result<(), jsonwebtoken::errors::Error> {
-    // TODO: key
-    let jwt = make_jwt(
-        uid,
-        JWT_KEY.expect("Checked during rocket ignite").to_string(),
-    )?;
+    let jwt = make_jwt(uid, get_jwt_key().to_string())?;
 
     log::info!("JWT: {jwt}");
 

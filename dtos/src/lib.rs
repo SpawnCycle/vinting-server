@@ -2,19 +2,11 @@
 pub mod email_string;
 pub mod limited_string;
 
-// TODO: remove the allow(unused)
-
-#[allow(unused)]
 pub mod category;
-#[allow(unused)]
 pub mod image;
-#[allow(unused)]
 pub mod order;
-#[allow(unused)]
 pub mod product;
-#[allow(unused)]
 pub mod tag;
-#[allow(unused)]
 pub mod user;
 
 // TODO: dtos

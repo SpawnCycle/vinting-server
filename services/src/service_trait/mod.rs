@@ -73,6 +73,15 @@ pub trait ServiceTrait {
         self.get_all_raw(Some(Self::default_filters()), |q| q).await
     }
 
+    /// returns all of the rows from the table that `Self::Entity` works with,
+    /// and maps the elements using the passed in muatation function
+    async fn get_all_mutating<T, F>(&self, f: F) -> Result<Vec<T>, DbErr>
+    where
+        F: FnMut(<Self::Entity as EntityTrait>::Model) -> T + Send,
+    {
+        Ok(self.get_all().await?.into_iter().map(f).collect())
+    }
+
     // mutating db functions
 
     /// Soft deletes a row with the help of `ActiveAction`

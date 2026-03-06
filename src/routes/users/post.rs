@@ -26,18 +26,16 @@ pub struct LoginDetails<'a> {
 #[post("/signup", format = "application/json", data = "<data>")]
 pub async fn signup(
     host: &Host<'_>,
+    jar: &CookieJar<'_>,
     db: &State<DbConn>,
     data: Json<UserPostDto>,
-    jar: &CookieJar<'_>,
 ) -> Result<Created<Json<UserGetDto>>, Responder> {
     let db = db.inner();
     let user = data.into_inner();
     let service = UserService(db);
 
-    if service.exists_by_email(user.email.clone()).await? {
-        return Err(Responder::bad_request(
-            "A user with that email already exists",
-        ));
+    if service.exists_by_email_all(user.email.clone()).await? {
+        return Err(Responder::conflict("A user with that email already exists"));
     }
 
     let user = service.insert(user).await?;

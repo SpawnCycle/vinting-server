@@ -7,8 +7,8 @@ use crate::responder::Responder;
 
 #[put("/<id>", data = "<data>")]
 pub async fn one(
-    db: &State<DbConn>,
     id: i32,
+    db: &State<DbConn>,
     data: Json<TagPutDto>,
 ) -> Result<NoContent, Responder> {
     let db = db.inner();
@@ -22,7 +22,7 @@ pub async fn one(
     }
 
     if !service.exists_by_id(id).await? {
-        return Err(Responder::not_found("There is no tag with the given id"));
+        return Err(Responder::conflict("There is no tag with the given id"));
     }
 
     let _ = service.update(tag).await?;

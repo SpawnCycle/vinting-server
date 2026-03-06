@@ -5,7 +5,7 @@ use services::{category_service::CategoryService, service_trait::ServiceTrait};
 use crate::responder::Responder;
 
 #[delete("/<id>")]
-pub async fn one(db: &State<DbConn>, id: i32) -> Result<NoContent, Responder> {
+pub async fn one(id: i32, db: &State<DbConn>) -> Result<NoContent, Responder> {
     let db = db.inner();
     let service = CategoryService(db);
 

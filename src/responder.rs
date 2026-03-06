@@ -8,6 +8,8 @@ use serde::Serialize;
 pub enum Responder {
     #[response(status = 500)]
     ServerError(String),
+    #[response(status = 409)]
+    Conflict(String),
     #[response(status = 404)]
     NotFound(String),
     #[response(status = 403)]
@@ -19,6 +21,10 @@ pub enum Responder {
 impl Responder {
     pub fn bad_request<S: ToString + ?Sized>(msg: &S) -> Self {
         Self::BadRequest(msg.to_string())
+    }
+
+    pub fn conflict<S: ToString + ?Sized>(msg: &S) -> Self {
+        Self::Conflict(msg.to_string())
     }
 
     pub fn not_found<S: ToString + ?Sized>(msg: &S) -> Self {

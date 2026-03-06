@@ -33,6 +33,18 @@ impl UserService<'_> {
             .exists(self.get_db())
             .await
     }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn exists_by_email_all<S>(&self, email: S) -> Result<bool, DbErr>
+    where
+        S: Into<String>,
+    {
+        let email = email.into() as String;
+        user::Entity::find_by_email(email)
+            .exists(self.get_db())
+            .await
+    }
 }
 
 impl ServiceTrait for UserService<'_> {

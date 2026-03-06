@@ -22,7 +22,7 @@ pub async fn one(
     }
 
     if !service.exists_by_id(id).await? {
-        return Err(Responder::not_found(
+        return Err(Responder::conflict(
             "There is no category with the given id",
         ));
     }

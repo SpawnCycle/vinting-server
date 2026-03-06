@@ -6,7 +6,7 @@ use services::{category_service::CategoryService, service_trait::ServiceTrait};
 use crate::responder::Responder;
 
 #[get("/<id>")]
-pub async fn one(db: &State<DbConn>, id: i32) -> Result<Json<CategoryGetDto>, Responder> {
+pub async fn one(id: i32, db: &State<DbConn>) -> Result<Json<CategoryGetDto>, Responder> {
     let db = db.inner();
     let service = CategoryService(db);
 

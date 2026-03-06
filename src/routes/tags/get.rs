@@ -6,7 +6,7 @@ use services::{service_trait::ServiceTrait, tag_service::TagService};
 use crate::responder::Responder;
 
 #[get("/<id>")]
-pub async fn one(db: &State<DbConn>, id: i32) -> Result<Json<TagGetDto>, Responder> {
+pub async fn one(id: i32, db: &State<DbConn>) -> Result<Json<TagGetDto>, Responder> {
     let db = db.inner();
     let service = TagService(db);
 

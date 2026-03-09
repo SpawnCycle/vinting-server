@@ -77,6 +77,9 @@ NPM=bun cargo run
 - Backend: Nothing special, just rerun/rebuild/retest the app when you're done making changes
 - Frontend: Run the backend and then start vite in the `vinting-web` directory with `npm run dev`
 
+> [!NOTE]
+> See the [endpoints](./ENDPOINTS.md) documentation for details on endpoints
+
 ## Repo file structure (excluding the client)
 
 - dtos: This houses the dtos and the helper types used in the dtos (e.g. EmailString)

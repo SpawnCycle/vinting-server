@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use chrono::{Duration, Local};
 use entity::user;
 use jsonwebtoken::{
@@ -21,7 +19,7 @@ use crate::constants::{JWT_STR, get_jwt_key};
 /// It implements FromRequest, so you can check if a user is signed in with the following:
 /// ```no_run
 /// use rocket::get;
-/// use vinting_server::routes::users::jwt::JwtClaims;
+/// use vinting_server::jwt::JwtClaims;
 ///
 ///
 /// #[get("/")]

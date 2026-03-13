@@ -1,5 +1,4 @@
 pub mod get;
-pub mod jwt;
 pub mod post;
 
 use rocket::{

@@ -19,23 +19,23 @@ pub enum Responder {
 }
 
 impl Responder {
-    pub fn bad_request<S: ToString + ?Sized>(msg: &S) -> Self {
+    pub fn bad_request(msg: impl ToString) -> Self {
         Self::BadRequest(msg.to_string())
     }
 
-    pub fn conflict<S: ToString + ?Sized>(msg: &S) -> Self {
+    pub fn conflict(msg: impl ToString) -> Self {
         Self::Conflict(msg.to_string())
     }
 
-    pub fn not_found<S: ToString + ?Sized>(msg: &S) -> Self {
+    pub fn not_found(msg: impl ToString) -> Self {
         Self::NotFound(msg.to_string())
     }
 
-    pub fn server_error<S: ToString + ?Sized>(msg: &S) -> Self {
+    pub fn server_error(msg: impl ToString) -> Self {
         Self::BadRequest(msg.to_string())
     }
 
-    pub fn unauhorized<S: ToString + ?Sized>(msg: &S) -> Self {
+    pub fn unauhorized(msg: impl ToString) -> Self {
         Self::BadRequest(msg.to_string())
     }
 }
@@ -49,7 +49,7 @@ impl From<DbErr> for Responder {
 impl From<jsonwebtoken::errors::Error> for Responder {
     fn from(e: jsonwebtoken::errors::Error) -> Self {
         if cfg!(debug_assertions) {
-            Self::server_error(&e.to_string())
+            Self::server_error(e.to_string())
         } else {
             Self::server_error("There was an error with the jwt")
         }

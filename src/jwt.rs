@@ -1,4 +1,7 @@
+use std::ops::Deref;
+
 use chrono::{Duration, Local};
+use entity::user;
 use jsonwebtoken::{
     DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
 };
@@ -7,7 +10,9 @@ use rocket::{
     http::Status,
     request::{FromRequest, Outcome},
 };
+use sea_orm::{DbConn, DbErr, EntityLoaderTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
+use services::{service_trait::ServiceTrait, user_service::UserService};
 use thiserror::Error;
 
 use crate::constants::{JWT_STR, get_jwt_key};
@@ -45,6 +50,59 @@ pub enum JwtError {
     Expired,
 }
 
+impl JwtClaims {
+    pub fn new(uid: i32) -> Self {
+        let now = Local::now();
+        let iat = now.timestamp();
+        let exp = (now + Duration::days(30)).timestamp();
+
+        JwtClaims { exp, iat, uid }
+    }
+
+    pub fn encode(self) -> Result<String, jsonwebtoken::errors::Error> {
+        encode(
+            &Header::default(),
+            &self,
+            &EncodingKey::from_secret(get_jwt_key().as_ref()),
+        )
+    }
+
+    /// fetches the user from the db using the filters defined in `UserService`
+    pub async fn fetch(&self, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
+        let service = UserService(db);
+
+        service.get_by_id(self.uid).await
+    }
+
+    /// fetches the user from the db without any filters
+    pub async fn fetch_always(&self, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
+        user::Entity::find_by_id(self.uid).one(db).await
+    }
+
+    /// fetches the user from the db using the filters defined in `UserService`
+    pub async fn load(
+        &self,
+        db: &DbConn,
+        mut with: impl FnMut(user::EntityLoader) -> user::EntityLoader,
+    ) -> Result<Option<user::ModelEx>, DbErr> {
+        with(user::Entity::load().filter_by_id(self.uid))
+            .filter(UserService::default_filters())
+            .one(db)
+            .await
+    }
+
+    /// fetches the user from the db without any filters
+    pub async fn load_always(
+        &self,
+        db: &DbConn,
+        mut with: impl FnMut(user::EntityLoader) -> user::EntityLoader,
+    ) -> Result<Option<user::ModelEx>, DbErr> {
+        with(user::Entity::load().filter_by_id(self.uid))
+            .one(db)
+            .await
+    }
+}
+
 #[async_trait]
 impl<'a> FromRequest<'a> for JwtClaims {
     type Error = JwtError;
@@ -80,18 +138,4 @@ impl<'a> FromRequest<'a> for JwtClaims {
 
         Outcome::Success(jwt.claims)
     }
-}
-
-pub fn make_jwt(uid: i32, _secret: String) -> Result<String, jsonwebtoken::errors::Error> {
-    let now = Local::now();
-    let iat = now.timestamp();
-    let exp = (now + Duration::days(30)).timestamp();
-
-    let claims = JwtClaims { exp, iat, uid };
-
-    encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(get_jwt_key().as_ref()),
-    )
 }

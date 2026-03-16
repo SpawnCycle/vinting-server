@@ -32,7 +32,7 @@ anyhow = "1.0.100"
 thiserror = "2.0.18"
 serde = "1.0.228"
 log = "0.4.29"
-strum = { version = "0.27.1", features = ["derive"] }
+strum = { version = "0.28.0", features = ["derive"] }
 # all crates part of password_hash are undergoing a major version bump of the rand crate,
 # which breaks the api, notably it removes OsRng, which is a big part of how you currently hash passwords
 argon2 = "0.6.0-rc.7"

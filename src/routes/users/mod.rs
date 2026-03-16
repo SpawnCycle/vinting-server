@@ -14,7 +14,7 @@ impl Fairing for UsersFairing {
     fn info(&self) -> Info {
         Info {
             name: "Users route fairing",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 

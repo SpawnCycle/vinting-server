@@ -15,7 +15,7 @@ impl Fairing for FileServerFairing {
     fn info(&self) -> Info {
         Info {
             name: "Fairing for static files",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 

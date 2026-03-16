@@ -4147,6 +4147,7 @@ dependencies = [
  "entity",
  "jsonwebtoken",
  "log",
+ "migrations",
  "rocket",
  "sea-orm",
  "serde",

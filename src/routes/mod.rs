@@ -30,7 +30,7 @@ impl Fairing for AllRouteFairing {
     fn info(&self) -> Info {
         Info {
             name: "All route fairing",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 

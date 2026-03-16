@@ -16,7 +16,7 @@ impl Fairing for TagsFairing {
     fn info(&self) -> Info {
         Info {
             name: "Tags route fairing",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 

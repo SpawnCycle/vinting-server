@@ -13,7 +13,7 @@ impl Fairing for ImagesFairing {
     fn info(&self) -> Info {
         Info {
             name: "Images Fairing",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 

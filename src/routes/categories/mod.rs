@@ -16,7 +16,7 @@ impl Fairing for CategoriesFairing {
     fn info(&self) -> Info {
         Info {
             name: "Categories route fairing",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 

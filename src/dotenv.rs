@@ -5,7 +5,7 @@ use rocket::{
 
 /// Environment variables that can be used with .env:
 ///     - JWT_KEY: The secret key for jwt
-///     - INMEMORY(only debug): if set launches the memory in memory mode
+///     - INMEMORY(only debug): if set launches the db in memory mode
 pub struct DotenvFairing;
 
 #[async_trait]
@@ -13,7 +13,7 @@ impl Fairing for DotenvFairing {
     fn info(&self) -> Info {
         Info {
             name: "Fairing that imports the .env files",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 

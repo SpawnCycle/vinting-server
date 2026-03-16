@@ -1,5 +1,6 @@
 use std::env;
 
+use migrations::MigratorTraitSelf;
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
@@ -19,15 +20,15 @@ impl Fairing for DatabaseFairing {
     fn info(&self) -> Info {
         Info {
             name: "Database Fairing",
-            kind: Kind::Ignite,
+            kind: Kind::Ignite | Kind::Singleton,
         }
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
-        match connect_db().await {
+        let db = match connect_db().await {
             Err(err) => {
                 log::error!("Could not make a database connection: {err}");
-                Err(r)
+                return Err(r);
             }
             Ok(conn) => {
                 let db = DatabaseConnection::from(conn);
@@ -35,7 +36,15 @@ impl Fairing for DatabaseFairing {
                     log::error!("Error while syncing db: {err}");
                     return Err(r);
                 }
-                Ok(r.manage(db))
+                db
+            }
+        };
+
+        match migrations::Migrator.up(&db, None).await {
+            Ok(_) => Ok(r.manage(db)),
+            Err(err) => {
+                log::error!("There was an error while running migrations: {err}");
+                Err(r)
             }
         }
     }

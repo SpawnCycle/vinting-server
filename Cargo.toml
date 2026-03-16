@@ -41,6 +41,7 @@ argon2 = "0.6.0-rc.7"
 entity = { path = "./entity" }
 dtos = { path = "./dtos" }
 services = { path = "./services" }
+migrations = { path = "./migrations" }
 
 sea-orm = { workspace = true }
 serde = { workspace = true }

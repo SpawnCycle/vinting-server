@@ -20,13 +20,19 @@ impl WhoamiDto {
             return None;
         }
 
+        let role_names = if m.roles.is_empty() {
+            Vec::new()
+        } else {
+            m.roles.into_iter().map(|r| r.name).collect()
+        };
+
         Some(Self {
             id: m.id,
             created_at: m.created_at,
             modified_at: m.modified_at,
             name: m.name,
             email: m.email,
-            roles: m.roles.into_iter().map(|r| r.name).collect(),
+            roles: role_names,
         })
     }
 }

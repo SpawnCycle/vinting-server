@@ -32,7 +32,6 @@ pub async fn upload(
     db: &State<DbConn>,
     mut form: Form<ImageForm<'_>>,
 ) -> Result<Json<ImageGetDto>, Responder> {
-    dbg!(&form);
     let db = db.inner();
     let uri = save_image(&mut form.image).await?;
     let service = ImageService(db);

@@ -9,13 +9,16 @@ use crate::{jwt::JwtClaims, responder::Responder};
 #[get("/whoami")]
 pub async fn whoami(claims: JwtClaims, db: &State<DbConn>) -> Result<Json<WhoamiDto>, Responder> {
     let db = db.inner();
+    log::warn!("About to crash");
     let user = claims
-        .load(db, |q| q.with(Role))
-        .await?
+        .load(db, |q| q.with(UserRole).with(Role))
+        .await
+        .inspect_err(|err| log::error!("The error is in the returned value: {err}"))?
         .ok_or(Responder::not_found(format!(
             "There is no user with id of {}",
             claims.uid
         )))?;
+    log::warn!("Probably crashed");
 
     Ok(Json(
         WhoamiDto::new(user).expect("The necessary should be loaded"),

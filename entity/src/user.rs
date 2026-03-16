@@ -20,7 +20,10 @@ pub struct Model {
     pub products: HasMany<super::product::Entity>,
     #[sea_orm(has_many)]
     pub orders: HasMany<super::order::Entity>,
+
     #[sea_orm(has_many)]
+    pub user_roles: HasMany<super::user_role::Entity>,
+    #[sea_orm(has_many, via = "user_role")]
     pub roles: HasMany<super::role::Entity>,
 }
 

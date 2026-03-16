@@ -1,3 +1,7 @@
+//! TODO:
+//! GET all / one
+//! DELETE
+
 pub mod post;
 
 use rocket::{

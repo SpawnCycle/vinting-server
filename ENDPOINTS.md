@@ -9,8 +9,27 @@
   Accepts: `SignupDto`
   Returns: `UserDto`
 - POST /api/users/login:
-  Accepts: `LoginDto`
+  Accepts: `LoginForm`
   Returns: NoContent
+- POST /api/users/logout:
+  Accepts: NoContent
+  Returns: NoContent
+- GET /api/users/whoami
+  Requires: Logged in
+  Accepts: NoContent
+  Returns: `WhoamiDto`
+- GET /api/users/
+  Accepts: NoContent
+  Returns: `UserDto[]`
+- GET /api/users/{id}
+  Accepts: NoContent
+  Returns: `UserDto`
+
+### Images
+
+- POST /api/images
+  Accepts: `ImageForm`
+  Returns: `ImageDto`
 
 ### Tags
 
@@ -48,6 +67,17 @@
   Accepts: NoContent
   Returns: NoContent
 
+## Forms:
+
+LoginForm:
+
+- email: string check against the "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" regex string
+- password: string
+
+ImageForm:
+
+- image: file (<!-- Currently only --> accepts png files)
+
 ## Types
 
 ### Users
@@ -80,6 +110,32 @@ UserDto:
   "modified_at": "2000-01-01",
   "name": "string",
   "email": "string"
+}
+```
+
+WhoamiDto:
+
+```json
+{
+  "id": 0,
+  "created_at": "2000-01-01",
+  "modified_at": "2000-01-01",
+  "name": "string",
+  "email": "string",
+  "roles": [1, 2]
+}
+```
+
+### Images
+
+ImageDto
+
+```json
+{
+  "id": 0,
+  "created_at": "2000-01-01",
+  "modified_at": "2000-01-01",
+  "url": "http://localhost:8000/img/afilename.png"
 }
 ```
 

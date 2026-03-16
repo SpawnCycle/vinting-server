@@ -9,9 +9,9 @@ pub const JWT_STR: &str = "JWT";
 
 pub static JWT_KEY: LazyLock<Option<&str>> = LazyLock::new(|| match dotenvy::var("JWT_KEY") {
     Ok(var) => Some(var.leak()),
-    #[allow(unused_variables)]
     Err(err) => {
         if cfg!(debug_assertions) {
+            log::warn!("No secret key set");
             Some("secret")
         } else {
             log::error!("The JWT_KEY is not present: {err}");

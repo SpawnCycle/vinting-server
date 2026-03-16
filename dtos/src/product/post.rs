@@ -1,10 +1,20 @@
-use entity::{category, image, product, tag};
+use entity::{
+    category, image,
+    product::{self, ProductCondition, ProductSex},
+    tag,
+};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ProductPostDto {
     pub name: String,
     pub description: String,
+    pub price: u64,
+    pub size: String,
+    pub brand: Option<String>,
+
+    pub condition: ProductCondition,
+    pub sex: ProductSex,
 
     /// List of category ids
     pub categories: Vec<i32>,
@@ -19,6 +29,10 @@ impl From<ProductPostDto> for product::ActiveModelEx {
         // user id is set outside of this function, because we get it from auth
         let mut p = product::ActiveModel::builder()
             .set_name(d.name)
+            .set_condition(d.condition)
+            .set_sex(d.sex)
+            .set_size(d.size)
+            .set_brand(d.brand)
             .set_description(d.description);
 
         // TODO: Test this

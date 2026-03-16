@@ -1,4 +1,4 @@
-use entity::product;
+use entity::product::{self, ProductCondition, ProductSex};
 use sea_orm::prelude::DateTime;
 use serde::Serialize;
 use services::{
@@ -21,6 +21,13 @@ pub struct ProductGetDto {
     pub name: String,
     pub description: String,
 
+    pub price: u64,
+    pub size: String,
+    pub brand: Option<String>,
+
+    pub condition: ProductCondition,
+    pub sex: ProductSex,
+
     pub user: UserGetDto,
     pub categories: Vec<CategoryGetDto>,
     pub tags: Vec<TagGetDto>,
@@ -28,24 +35,30 @@ pub struct ProductGetDto {
 }
 
 impl ProductGetDto {
-    // TODO: remove the allow(unused)
-    #[allow(unused)]
-    fn from_model_with_host(m: product::ModelEx, host: &str) -> Self {
-        // TODO: Write tests for endpoints so we don't find out in prod that these are not set
-        assert!(m.categories.is_loaded());
-        assert!(m.tags.is_loaded());
-        assert!(m.images.is_loaded());
-        assert!(m.user.is_loaded());
+    pub fn from_model_with_host(m: product::ModelEx, host: &str) -> Option<Self> {
+        if !m.categories.is_loaded()
+            || !m.tags.is_loaded()
+            || !m.images.is_loaded()
+            || !m.user.is_loaded()
+        {
+            return None;
+        }
 
         let user = m.user.unwrap();
 
-        Self {
+        Some(Self {
             id: m.id,
             created_at: m.created_at,
             modified_at: m.modified_at,
 
             name: m.name,
             description: m.description,
+
+            price: m.price,
+            size: m.size,
+            brand: m.brand,
+            condition: m.condition,
+            sex: m.sex,
 
             user: UserGetDto::from(user),
 
@@ -67,6 +80,6 @@ impl ProductGetDto {
                 .filter(|m| TagService::iter_filter(m.clone()))
                 .map(TagGetDto::from)
                 .collect::<Vec<_>>(),
-        }
+        })
     }
 }

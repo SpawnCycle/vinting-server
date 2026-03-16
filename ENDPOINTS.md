@@ -122,7 +122,7 @@ WhoamiDto:
   "modified_at": "2000-01-01",
   "name": "string",
   "email": "string",
-  "roles": [1, 2]
+  "roles": ["role1", "role2"]
 }
 ```
 

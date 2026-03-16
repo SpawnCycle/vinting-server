@@ -5,7 +5,7 @@ use jsonwebtoken::{
 };
 use rocket::{
     Request, async_trait,
-    http::Status,
+    http::{CookieJar, Status},
     request::{FromRequest, Outcome},
 };
 use sea_orm::{DbConn, DbErr, EntityLoaderTrait, EntityTrait, QueryFilter};
@@ -55,6 +55,10 @@ impl JwtClaims {
         let exp = (now + Duration::days(30)).timestamp();
 
         JwtClaims { exp, iat, uid }
+    }
+
+    pub fn remove_from(&self, jar: &CookieJar<'_>) {
+        jar.remove(JWT_STR);
     }
 
     pub fn encode(self) -> Result<String, jsonwebtoken::errors::Error> {

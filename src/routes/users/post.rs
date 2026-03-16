@@ -71,6 +71,13 @@ pub async fn login(
     Ok(NoContent)
 }
 
+#[post("/logout")]
+pub fn logout(claims: JwtClaims, jar: &CookieJar<'_>) -> NoContent {
+    claims.remove_from(jar);
+
+    NoContent
+}
+
 fn add_jwt_to_jar(uid: i32, jar: &CookieJar<'_>) -> Result<(), jsonwebtoken::errors::Error> {
     let jwt = JwtClaims::new(uid);
 

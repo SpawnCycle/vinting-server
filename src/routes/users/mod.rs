@@ -24,6 +24,7 @@ impl Fairing for UsersFairing {
             routes![
                 post::signup,
                 post::login,
+                post::logout,
                 get::whoami,
                 get::one,
                 get::all,

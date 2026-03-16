@@ -10,6 +10,7 @@
 //!     put.rs  (all of the routes which accept a PUT http request)
 
 pub mod categories;
+pub mod images;
 pub mod tags;
 pub mod users;
 
@@ -18,7 +19,9 @@ use rocket::{
     fairing::{self, Fairing, Info, Kind},
 };
 
-use crate::routes::users::UsersFairing;
+use crate::routes::{
+    categories::CategoriesFairing, images::ImagesFairing, tags::TagsFairing, users::UsersFairing,
+};
 
 pub struct AllRouteFairing;
 
@@ -32,7 +35,11 @@ impl Fairing for AllRouteFairing {
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
-        let r = r.attach(UsersFairing);
+        let r = r
+            .attach(UsersFairing)
+            .attach(CategoriesFairing)
+            .attach(TagsFairing)
+            .attach(ImagesFairing);
 
         Ok(r)
     }

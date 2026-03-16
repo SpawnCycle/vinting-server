@@ -44,7 +44,7 @@ impl ProductGetDto {
             return None;
         }
 
-        let user = m.user.unwrap();
+        let user = m.user.into_option()?;
 
         Some(Self {
             id: m.id,

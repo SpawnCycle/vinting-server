@@ -5,7 +5,7 @@ use services::{category_service::CategoryService, service_trait::ServiceTrait};
 
 use crate::responder::Responder;
 
-#[put("/<id>", data = "<data>")]
+#[put("/<id>", format = "application/json", data = "<data>")]
 pub async fn one(
     db: &State<DbConn>,
     id: i32,

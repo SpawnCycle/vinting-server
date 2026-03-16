@@ -3,6 +3,7 @@ use std::sync::LazyLock;
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
+    http::uri::Host,
 };
 
 pub const JWT_STR: &str = "JWT";
@@ -22,6 +23,22 @@ pub static JWT_KEY: LazyLock<Option<&str>> = LazyLock::new(|| match dotenvy::var
 
 pub fn get_jwt_key() -> &'static str {
     JWT_KEY.expect("Checked inside `LazyProcFairing`")
+}
+
+// TODO: Get the value at runtime
+pub fn has_tls() -> bool {
+    false
+}
+
+/// returns `https` if tls is enabled,
+/// otherwise returns `http`
+pub fn get_protocol() -> &'static str {
+    if has_tls() { "https" } else { "http" }
+}
+
+// WARN: There's probably a better way of doing this, but I don't know it
+pub fn construct_host(host: &Host<'_>) -> String {
+    format!("{}://{host}", get_protocol())
 }
 
 pub struct LazyProcFairing;

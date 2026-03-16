@@ -1,5 +1,9 @@
+# rust build output
 /target
+# client output
 /web
+# images directory
+/img
 
 # db files
 *.db

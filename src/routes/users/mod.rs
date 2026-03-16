@@ -21,7 +21,15 @@ impl Fairing for UsersFairing {
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
         let r = r.mount(
             "/api/users",
-            routes![post::signup, post::login, get::jwt_test, get::auth_test],
+            routes![
+                post::signup,
+                post::login,
+                get::whoami,
+                get::one,
+                get::all,
+                get::jwt_test,
+                get::auth_test
+            ],
         );
 
         Ok(r)

@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::io;
+
 use rocket::Responder;
 use sea_orm::DbErr;
 use serde::Serialize;
@@ -43,6 +45,16 @@ impl Responder {
 impl From<DbErr> for Responder {
     fn from(value: DbErr) -> Self {
         Self::ServerError(value.to_string())
+    }
+}
+
+impl From<io::Error> for Responder {
+    fn from(value: io::Error) -> Self {
+        if cfg!(debug_assertions) {
+            Self::server_error(format!("There was an io error: {}", value))
+        } else {
+            Self::server_error("There was an error while saving the file")
+        }
     }
 }
 

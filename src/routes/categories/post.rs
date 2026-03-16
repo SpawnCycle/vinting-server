@@ -3,9 +3,9 @@ use rocket::{State, http::uri::Host, post, response::status::Created, serde::jso
 use sea_orm::DbConn;
 use services::{category_service::CategoryService, service_trait::ServiceTrait};
 
-use crate::responder::Responder;
+use crate::{constants::construct_host, responder::Responder};
 
-#[post("/", data = "<data>")]
+#[post("/", format = "application/json", data = "<data>")]
 pub async fn one(
     host: &Host<'_>,
     db: &State<DbConn>,
@@ -21,5 +21,10 @@ pub async fn one(
 
     let model = service.insert(category).await?;
 
-    Ok(Created::new(format!("{host}/api/categories/{}", model.id)).body(Json(model.into())))
+    Ok(Created::new(format!(
+        "{}/api/categories/{}",
+        construct_host(host),
+        model.id
+    ))
+    .body(Json(model.into())))
 }

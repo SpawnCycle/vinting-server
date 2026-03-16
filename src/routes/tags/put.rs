@@ -5,7 +5,7 @@ use services::{service_trait::ServiceTrait, tag_service::TagService};
 
 use crate::responder::Responder;
 
-#[put("/<id>", data = "<data>")]
+#[put("/<id>", format = "application/json", data = "<data>")]
 pub async fn one(
     id: i32,
     db: &State<DbConn>,

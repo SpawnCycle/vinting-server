@@ -18,8 +18,19 @@ impl Fairing for DotenvFairing {
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
-        let _ =
-            dotenvy::dotenv().inspect_err(|err| log::warn!("Couldn't initialize dotenvy: {err}"));
+        let mut success = false;
+        if !cfg!(debug_assertions) {
+            success = dotenvy::from_filename(".env.production").is_ok() || success;
+        }
+        success = dotenvy::dotenv()
+            .inspect_err(|err| log::warn!("Couldn't initialize dotenvy: {err}"))
+            .is_ok()
+            || success;
+
+        if !success && !cfg!(debug_assertions) {
+            log::error!("Couldn't read an env file");
+            return Err(r);
+        }
 
         Ok(r)
     }

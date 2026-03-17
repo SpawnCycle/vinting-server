@@ -48,7 +48,9 @@ pub async fn upload(
 async fn save_image(image: &mut TempFile<'_>) -> Result<String, io::Error> {
     let mut hasher = DefaultHasher::new();
 
+    // the more random stuff to hash, the better
     image.len().hash(&mut hasher);
+    image.path().hash(&mut hasher);
     if let Some(b) = image.name() {
         b.hash(&mut hasher)
     }

@@ -1,8 +1,8 @@
 //! TODO:
 //! DELETE?
 
-pub mod get;
-pub mod post;
+mod get;
+mod post;
 
 use rocket::{
     Build, Rocket, async_trait,

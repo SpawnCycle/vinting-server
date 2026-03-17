@@ -1,7 +1,7 @@
-pub mod delete;
-pub mod get;
-pub mod post;
-pub mod put;
+mod delete;
+mod get;
+mod post;
+mod put;
 
 use rocket::{
     Build, Rocket, async_trait,

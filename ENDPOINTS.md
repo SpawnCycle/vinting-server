@@ -30,6 +30,12 @@
 - POST /api/images
   Accepts: `ImageForm`
   Returns: `ImageDto`
+- GET /api/images
+  Accepts: NoContent
+  Returns: `ImageDto[]`
+- GET /api/images/{id}
+  Accepts: NoContent
+  Returns: `ImageDto`
 
 ### Tags
 

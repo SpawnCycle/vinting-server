@@ -9,10 +9,10 @@
 //!     post.rs (all of the routes which accept a POST http request)
 //!     put.rs  (all of the routes which accept a PUT http request)
 
-pub mod categories;
-pub mod images;
-pub mod tags;
-pub mod users;
+mod categories;
+mod images;
+mod tags;
+mod users;
 
 use rocket::{
     Build, Rocket, async_trait,

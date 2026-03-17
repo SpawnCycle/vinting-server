@@ -1,6 +1,8 @@
-pub use sea_orm_migration::*;
+mod m20260316_seed_roles;
 
-pub mod m20260316_seed_roles;
+pub mod constants;
+
+pub use sea_orm_migration::*;
 
 pub struct Migrator;
 

@@ -1,4 +1,4 @@
-use sea_orm::entity::prelude::*;
+use sea_orm::{ActiveValue::Set, entity::prelude::*, sea_query::prelude::Utc};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -22,6 +22,15 @@ pub struct Model {
     pub tag: HasOne<super::image::Entity>,
 }
 
-impl ActiveModelBehavior for ActiveModel {}
+impl ActiveModelBehavior for ActiveModel {
+    fn new() -> Self {
+        let now = Utc::now().naive_local();
+        Self {
+            created_at: Set(now),
+            modified_at: Set(now),
+            ..ActiveModelTrait::default()
+        }
+    }
+}
 
 crate::active_actions!(ActiveModelEx);

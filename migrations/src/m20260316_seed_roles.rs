@@ -5,7 +5,7 @@ use sea_orm::{
 };
 use sea_orm_migration::prelude::*;
 
-const ROLE_NAMES: [&str; 2] = ["Admin", "User"];
+use crate::constants::ROLE_NAMES;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;

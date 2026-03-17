@@ -1,5 +1,7 @@
 use argon2::{Argon2, PasswordVerifier};
 use dtos::user::{get::UserGetDto, post::UserPostDto};
+use entity::{active_action::ActiveAction, role, user};
+use migrations::constants::DEFAULT_ROLE;
 use rocket::{
     FromForm, State,
     form::Form,
@@ -8,7 +10,7 @@ use rocket::{
     response::status::{Created, NoContent},
     serde::json::Json,
 };
-use sea_orm::DbConn;
+use sea_orm::{DbConn, IntoActiveModel};
 use services::{service_trait::ServiceTrait, user_service::UserService};
 
 use crate::{constants::JWT_STR, jwt::JwtClaims, responder::Responder};
@@ -33,6 +35,16 @@ pub async fn signup(
     if service.exists_by_email_all(user.email.clone()).await? {
         return Err(Responder::conflict("A user with that email already exists"));
     }
+
+    let default_role = role::Entity::find_by_name(DEFAULT_ROLE)
+        .one(db)
+        .await?
+        .map_or(
+            role::ActiveModelEx::new().creating().set_name(DEFAULT_ROLE),
+            |m| m.into_active_model().into(),
+        );
+
+    let user = user::ActiveModelEx::from(user).add_role(default_role);
 
     let user = service.insert(user).await?;
 

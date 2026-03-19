@@ -86,3 +86,4 @@ NPM=bun cargo run
 - entity: This has the sea-orm models and helper functions applied to sea-orm generated types (currently only has ActiveAction)
 - services: Definitions for services and the service trait
 - src: Source files for the server
+- migrations: Migrations for the db, currently only has seed data

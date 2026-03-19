@@ -3,15 +3,17 @@ mod post;
 mod put;
 
 use dtos::product::{post::ProductPostDto, put::ProductPutDto};
-use entity::product;
+use entity::{image, prelude::*, product};
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
     routes,
 };
-use sea_orm::{DbConn, IntoActiveModel};
+use sea_orm::{ColumnTrait, DbConn, EntityTrait, IntoActiveModel, QueryFilter};
 use services::{
-    category_service::CategoryService, image_service::ImageService, service_trait::ServiceTrait,
+    category_service::CategoryService,
+    image_service::ImageService,
+    service_trait::{ServiceFilter, ServiceTrait},
     tag_service::TagService,
 };
 
@@ -47,7 +49,6 @@ pub async fn product_post_dto_to_am_with_associations(
     let mut am = dto.clone().into_active_model(uid);
     let c_service = CategoryService(db);
     let t_service = TagService(db);
-    let i_service = ImageService(db);
 
     for c_id in dto.categories {
         let c = c_service
@@ -70,11 +71,13 @@ pub async fn product_post_dto_to_am_with_associations(
     }
 
     for i_id in dto.images {
-        let i = i_service
-            .get_by_id(i_id)
+        let i = Image::find_by_id(i_id)
+            .filter(image::Column::UserId.eq(uid))
+            .service_filter::<ImageService>()
+            .one(db)
             .await?
             .ok_or(Responder::not_found(format!(
-                "There is no image with the id of {i_id}"
+                "You did not post an image with the id of {i_id}"
             )))?;
         am = am.add_image(i.into_active_model());
     }

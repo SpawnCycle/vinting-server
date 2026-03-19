@@ -3,6 +3,23 @@
 
 ## Endpoints
 
+### Products
+
+- POST /api/products/:
+  Requires: Logged in
+  Accepts: `ProductPostDto`
+  Returns: `ProductGetDto`
+- PUT /api/products/{id}:
+  Requires: Logged in
+  Accepts: `ProductPostDto`
+  Returns: NoContent
+- GET /api/products
+  Accepts: NoContent
+  Returns: `ProductGetDto[]`
+- GET /api/products/{id}
+  Accepts: NoContent
+  Returns: `ProductGetDto`
+
 ### Users
 
 - POST /api/users/signup:
@@ -28,6 +45,7 @@
 ### Images
 
 - POST /api/images
+  Requires: Logged in
   Accepts: `ImageForm`
   Returns: `ImageDto`
 - GET /api/images
@@ -77,7 +95,7 @@
 
 LoginForm:
 
-- email: string check against the "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" regex string
+- email: string checked against the "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" regex string
 - password: string
 
 ImageForm:
@@ -85,6 +103,66 @@ ImageForm:
 - image: file (<!-- Currently only --> accepts png files)
 
 ## Types
+
+### Products
+
+ProductPostDto:
+
+```json
+{
+  "name": "string",
+  "description": "string",
+  "price": 1,
+  "size": "string",
+  "brand": "string | null",
+  "condition": "New | Like new | Used | Heavily used",
+  "sex": "Male | Female | Unisex",
+  "categories": [1],
+  "tags": [1],
+  "images": [1]
+}
+```
+
+ProductGetDto:
+
+```json
+{
+  "id": 1,
+  "created_at": "2000-01-01",
+  "modified_at": "2000-01-01",
+  "name": "string",
+  "description": "string",
+  "price": 1,
+  "size": "string",
+  "brand": "string | null",
+  "condition": "New | Like new | Used | Heavily used",
+  "sex": "Male | Female | Unisex",
+  "user": {
+    "id": 1,
+    "created_at": "2000-01-05",
+    "modified_at": "2000-01-05",
+    "name": "string",
+    "email": "email@email.com"
+  },
+  "categories": [
+    {
+      "id": 1,
+      "created_at": "2000-01-05",
+      "modified_at": "2000-01-05",
+      "name": "string"
+    }
+  ],
+  "tags": [
+    {
+      "id": 1,
+      "created_at": "2000-01-05",
+      "modified_at": "2000-0l-05",
+      "name": "string"
+    }
+  ],
+  "images": ["string"]
+}
+```
 
 ### Users
 

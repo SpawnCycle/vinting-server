@@ -69,6 +69,14 @@ impl JwtClaims {
         )
     }
 
+    pub async fn verify_or_remove(&self, db: &DbConn, jar: &CookieJar<'_>) -> Result<bool, DbErr> {
+        let exists = self.exists(db).await?;
+        if !exists {
+            self.remove_from(jar);
+        }
+        Ok(exists)
+    }
+
     pub async fn exists(&self, db: &DbConn) -> Result<bool, DbErr> {
         let service = UserService(db);
 

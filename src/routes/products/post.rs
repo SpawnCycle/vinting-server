@@ -1,5 +1,4 @@
 use dtos::product::{get::ProductGetDto, post::ProductPostDto};
-use entity::{prelude::*, product};
 use rocket::{
     State,
     http::{CookieJar, uri::Host},
@@ -7,13 +6,13 @@ use rocket::{
     response::status::Created,
     serde::json::Json,
 };
-use sea_orm::{DbConn, EntityTrait, IntoActiveModel};
-use services::{
-    category_service::CategoryService, image_service::ImageService,
-    product_service::ProductService, service_trait::ServiceTrait, tag_service::TagService,
-};
+use sea_orm::DbConn;
+use services::{product_service::ProductService, service_trait::ServiceTrait};
 
-use crate::{constants::construct_host, jwt::JwtClaims, responder::Responder};
+use crate::{
+    constants::construct_host, jwt::JwtClaims, responder::Responder,
+    routes::products::product_post_dto_to_am_with_associations,
+};
 
 #[post("/", format = "application/json", data = "<data>")]
 pub async fn one(
@@ -34,7 +33,7 @@ pub async fn one(
     }
 
     let model = service
-        .insert(dto_to_am_with_associations(claims.uid, data.into_inner(), db).await?)
+        .insert(product_post_dto_to_am_with_associations(data.into_inner(), claims.uid, db).await?)
         .await?;
     let model = service
         .load_by_id(model.id)
@@ -46,49 +45,4 @@ pub async fn one(
         .ok_or(Responder::server_error("Could not construct the dto"))?;
 
     Ok(Created::new(format!("{host}/api/products/{id}")).body(Json(dto)))
-}
-
-// Setting the active model id to the id and trying to insert with it doesn't work,
-// so this is the way to go, very sad
-pub async fn dto_to_am_with_associations(
-    uid: i32,
-    dto: ProductPostDto,
-    db: &DbConn,
-) -> Result<product::ActiveModelEx, Responder> {
-    let mut am = dto.clone().into_active_model(uid);
-    let c_service = CategoryService(db);
-    let t_service = TagService(db);
-    let i_service = ImageService(db);
-
-    for c_id in dto.categories {
-        let c = c_service
-            .get_by_id(c_id)
-            .await?
-            .ok_or(Responder::not_found(format!(
-                "There is no category with the id of {c_id}"
-            )))?;
-        am = am.add_category(c.into_active_model());
-    }
-
-    for t_id in dto.tags {
-        let t = t_service
-            .get_by_id(t_id)
-            .await?
-            .ok_or(Responder::not_found(format!(
-                "There is no tag with the id of {t_id}"
-            )))?;
-        am = am.add_tag(t.into_active_model());
-    }
-
-    for i_id in dto.images {
-        let i = i_service
-            .get_by_id(i_id)
-            .await?
-            .ok_or(Responder::not_found(format!(
-                "There is no image with the id of {i_id}"
-            )))?;
-        am = am.add_image(i.into_active_model());
-    }
-
-    Ok(am)
 }

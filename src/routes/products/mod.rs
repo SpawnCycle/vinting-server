@@ -1,11 +1,21 @@
 mod get;
 mod post;
+mod put;
 
+use dtos::product::{post::ProductPostDto, put::ProductPutDto};
+use entity::product;
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
     routes,
 };
+use sea_orm::{DbConn, IntoActiveModel};
+use services::{
+    category_service::CategoryService, image_service::ImageService, service_trait::ServiceTrait,
+    tag_service::TagService,
+};
+
+use crate::responder::Responder;
 
 pub struct ProductFairing;
 
@@ -19,8 +29,66 @@ impl Fairing for ProductFairing {
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
-        let r = r.mount("/api/products", routes![post::one, get::all, get::one]);
+        let r = r.mount(
+            "/api/products",
+            routes![get::all, get::one, post::one, put::one],
+        );
 
         Ok(r)
     }
+}
+
+// so this is the way to go, very sad
+pub async fn product_post_dto_to_am_with_associations(
+    dto: ProductPostDto,
+    uid: i32,
+    db: &DbConn,
+) -> Result<product::ActiveModelEx, Responder> {
+    let mut am = dto.clone().into_active_model(uid);
+    let c_service = CategoryService(db);
+    let t_service = TagService(db);
+    let i_service = ImageService(db);
+
+    for c_id in dto.categories {
+        let c = c_service
+            .get_by_id(c_id)
+            .await?
+            .ok_or(Responder::not_found(format!(
+                "There is no category with the id of {c_id}"
+            )))?;
+        am = am.add_category(c.into_active_model());
+    }
+
+    for t_id in dto.tags {
+        let t = t_service
+            .get_by_id(t_id)
+            .await?
+            .ok_or(Responder::not_found(format!(
+                "There is no tag with the id of {t_id}"
+            )))?;
+        am = am.add_tag(t.into_active_model());
+    }
+
+    for i_id in dto.images {
+        let i = i_service
+            .get_by_id(i_id)
+            .await?
+            .ok_or(Responder::not_found(format!(
+                "There is no image with the id of {i_id}"
+            )))?;
+        am = am.add_image(i.into_active_model());
+    }
+
+    Ok(am)
+}
+
+// insane name
+pub async fn product_put_dto_to_am_with_associations(
+    dto: ProductPutDto,
+    uid: i32,
+    db: &DbConn,
+) -> Result<product::ActiveModelEx, Responder> {
+    Ok(product_post_dto_to_am_with_associations(dto.data, uid, db)
+        .await?
+        .set_id(dto.id))
 }

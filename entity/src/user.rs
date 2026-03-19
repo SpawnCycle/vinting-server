@@ -17,6 +17,8 @@ pub struct Model {
     pub password_hash: String,
 
     #[sea_orm(has_many)]
+    pub images: HasMany<super::image::Entity>,
+    #[sea_orm(has_many)]
     pub products: HasMany<super::product::Entity>,
     #[sea_orm(has_many)]
     pub orders: HasMany<super::order::Entity>,

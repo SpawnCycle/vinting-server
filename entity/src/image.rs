@@ -17,10 +17,15 @@ pub struct Model {
     // afterwards use that as the image path in the db
     pub path: String,
 
+    #[sea_orm(indexed)]
+    pub user_id: i32,
+
     #[sea_orm(has_many)]
     pub product_images: HasMany<super::product_image::Entity>,
     #[sea_orm(has_many, via = "product_image")]
-    pub images: HasMany<super::image::Entity>,
+    pub products: HasMany<super::product::Entity>,
+    #[sea_orm(belongs_to, from = "user_id", to = "id")]
+    pub user: HasOne<super::user::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

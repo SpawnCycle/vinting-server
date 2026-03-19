@@ -11,6 +11,7 @@ pub struct ImageGetDto {
     pub modified_at: DateTime,
 
     pub url: String,
+    pub user_id: i32,
 }
 
 impl ImageGetDto {
@@ -28,6 +29,7 @@ impl ImageGetDto {
             id: m.id,
             created_at: m.created_at,
             modified_at: m.modified_at,
+            user_id: m.user_id,
             url: format!("{host}/img/{}", file_name.display()),
         }
     }

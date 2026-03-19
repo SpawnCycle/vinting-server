@@ -17,7 +17,7 @@ pub async fn one(
 ) -> Result<NoContent, Responder> {
     let db = db.inner();
     let service = ProductService(db);
-    if !claims.verify_or_remove(db, jar).await? {
+    if !claims.exists_or_remove(db, jar).await? {
         return Err(Responder::unauhorized(
             "Your token is not valid, it has been removed",
         ));

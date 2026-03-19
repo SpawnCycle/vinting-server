@@ -1,15 +1,12 @@
-use entity::{
-    category, image,
-    product::{self, ProductCondition, ProductSex},
-    tag,
-};
+use entity::product::{self, ProductCondition, ProductSex};
 use serde::Deserialize;
 
+/// DOESN'T SET THE FOREIGN STUFF
 #[derive(Debug, Clone, Deserialize)]
 pub struct ProductPostDto {
     pub name: String,
     pub description: String,
-    pub price: u64,
+    pub price: u32,
     pub size: String,
     pub brand: Option<String>,
 
@@ -24,32 +21,25 @@ pub struct ProductPostDto {
     pub tags: Vec<i32>,
 }
 
+impl ProductPostDto {
+    #[must_use]
+    pub fn into_active_model(self, uid: i32) -> product::ActiveModelEx {
+        product::ActiveModelEx::from(self).set_seller_id(uid)
+    }
+}
+
 impl From<ProductPostDto> for product::ActiveModelEx {
+    // Doesn't set the foreign stuff
     fn from(d: ProductPostDto) -> product::ActiveModelEx {
         // user id is set outside of this function, because we get it from auth
-        let mut p = product::ActiveModel::builder()
+        product::ActiveModel::builder()
             .set_name(d.name)
             .set_condition(d.condition)
+            .set_price(d.price)
             .set_sex(d.sex)
             .set_size(d.size)
             .set_brand(d.brand)
-            .set_description(d.description);
-
-        // TODO: Test this
-        for c_id in d.categories {
-            p = p.add_category(category::ActiveModel::builder().set_id(c_id));
-        }
-
-        // TODO: Test this too
-        for i_id in d.images {
-            p = p.add_image(image::ActiveModel::builder().set_id(i_id));
-        }
-
-        // TODO: More tests
-        for t_id in d.tags {
-            p = p.add_tag(tag::ActiveModel::builder().set_id(t_id));
-        }
-
-        p
+            .set_description(d.description)
+            .set_has_stock(true)
     }
 }

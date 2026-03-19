@@ -16,7 +16,7 @@ pub struct Model {
     pub name: String,
     pub description: String,
 
-    pub price: u64,
+    pub price: u32,
 
     pub has_stock: bool,
     pub size: String,

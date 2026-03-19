@@ -11,6 +11,7 @@
 
 mod categories;
 mod images;
+mod products;
 mod tags;
 mod users;
 
@@ -20,7 +21,8 @@ use rocket::{
 };
 
 use crate::routes::{
-    categories::CategoriesFairing, images::ImagesFairing, tags::TagsFairing, users::UsersFairing,
+    categories::CategoriesFairing, images::ImagesFairing, products::ProductFairing,
+    tags::TagsFairing, users::UsersFairing,
 };
 
 pub struct AllRouteFairing;
@@ -39,7 +41,8 @@ impl Fairing for AllRouteFairing {
             .attach(UsersFairing)
             .attach(CategoriesFairing)
             .attach(TagsFairing)
-            .attach(ImagesFairing);
+            .attach(ImagesFairing)
+            .attach(ProductFairing);
 
         Ok(r)
     }

@@ -69,6 +69,12 @@ impl JwtClaims {
         )
     }
 
+    pub async fn exists(&self, db: &DbConn) -> Result<bool, DbErr> {
+        let service = UserService(db);
+
+        service.exists_by_id(self.uid).await
+    }
+
     /// fetches the user from the db using the filters defined in `UserService`
     pub async fn fetch(&self, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
         let service = UserService(db);

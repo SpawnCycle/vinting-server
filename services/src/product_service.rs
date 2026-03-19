@@ -1,13 +1,80 @@
-use crate::service_trait::ServiceTrait;
-use entity::product;
+use crate::service_trait::{ServiceFilter, ServiceTrait};
+use entity::{prelude::*, product};
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityTrait, PrimaryKeyTrait,
+    ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityLoaderTrait, EntityTrait,
+    PrimaryKeyTrait,
 };
 
 pub struct ProductService<'a>(pub &'a DatabaseConnection);
 
+impl ProductService<'_> {
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_by_id(&self, id: i32) -> Result<Option<product::ModelEx>, DbErr> {
+        Product::load()
+            .filter_by_id(id)
+            .with(User)
+            .with(Category)
+            .with(Tag)
+            .with(Image)
+            .service_filter::<Self>()
+            .one(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_by_id_mutating<T, F>(&self, id: i32, f: F) -> Result<Option<T>, DbErr>
+    where
+        F: FnMut(product::ModelEx) -> T,
+    {
+        Ok(Product::load()
+            .filter_by_id(id)
+            .with(User)
+            .with(Category)
+            .with(Tag)
+            .with(Image)
+            .service_filter::<Self>()
+            .one(self.get_db())
+            .await?
+            .map(f))
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_all(&self) -> Result<Vec<product::ModelEx>, DbErr> {
+        Product::load()
+            .with(User)
+            .with(Category)
+            .with(Tag)
+            .with(Image)
+            .service_filter::<Self>()
+            .all(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_all_mutating<T, F>(&self, f: F) -> Result<Vec<T>, DbErr>
+    where
+        F: FnMut(product::ModelEx) -> T,
+    {
+        Ok(Product::load()
+            .with(User)
+            .with(Category)
+            .with(Tag)
+            .with(Image)
+            .service_filter::<Self>()
+            .all(self.get_db())
+            .await?
+            .into_iter()
+            .map(f)
+            .collect())
+    }
+}
+
 impl ServiceTrait for ProductService<'_> {
-    type Entity = product::Entity;
+    type Entity = Product;
 
     fn iter_filter<M>(m: M) -> bool
     where

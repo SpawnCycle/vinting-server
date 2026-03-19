@@ -21,7 +21,7 @@ pub struct ProductGetDto {
     pub name: String,
     pub description: String,
 
-    pub price: u64,
+    pub price: u32,
     pub size: String,
     pub brand: Option<String>,
 
@@ -31,7 +31,7 @@ pub struct ProductGetDto {
     pub user: UserGetDto,
     pub categories: Vec<CategoryGetDto>,
     pub tags: Vec<TagGetDto>,
-    pub images: Vec<ImageGetDto>,
+    pub images: Vec<String>,
 }
 
 impl ProductGetDto {
@@ -72,7 +72,7 @@ impl ProductGetDto {
                 .images
                 .into_iter()
                 .filter(|m| ImageService::iter_filter(m.clone()))
-                .map(|m| ImageGetDto::from_model_with_host(m, host))
+                .map(|m| ImageGetDto::from_model_with_host(m, host).url)
                 .collect::<Vec<_>>(),
             tags: m
                 .tags

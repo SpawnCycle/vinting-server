@@ -11,6 +11,8 @@ fn main() {
     cargo_build::rerun_if_changed("./.git/HEAD");
     // rerun if we're on a different submodule commit
     cargo_build::rerun_if_changed("./.git/modules/vinting-web/HEAD");
+    // reruns if this doesn't exist
+    cargo_build::rerun_if_changed("./web/index.html");
 
     // exits early to not touch anything npm related,
     // good for testing

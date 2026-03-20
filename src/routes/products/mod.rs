@@ -1,4 +1,5 @@
 mod get;
+mod id_model;
 mod post;
 mod put;
 

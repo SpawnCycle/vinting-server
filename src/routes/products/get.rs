@@ -1,9 +1,23 @@
 use dtos::product::get::ProductGetDto;
-use rocket::{State, get, http::uri::Host, serde::json::Json};
-use sea_orm::DbConn;
-use services::product_service::ProductService;
+use entity::{category, prelude::*, product};
+use rocket::{FromForm, State, get, http::uri::Host, serde::json::Json};
+use sea_orm::{ColumnTrait, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect};
+use services::{product_service::ProductService, service_trait::ServiceFilter};
 
 use crate::{constants::construct_host, responder::Responder};
+
+#[derive(Debug, Clone, FromForm)]
+pub struct ProductFilter {
+    gender: Option<String>,
+    size: Option<String>,
+    color: Option<String>,
+    condition: Option<String>,
+    categories: Option<Vec<String>>,
+    #[field(default = 0)]
+    page: u64,
+    #[field(default = 10)]
+    page_size: u64,
+}
 
 #[get("/<id>")]
 pub async fn one(
@@ -29,21 +43,71 @@ pub async fn one(
     Ok(Json(product))
 }
 
-#[get("/")]
+#[get("/?<filters..>")]
 pub async fn all(
     host: &Host<'_>,
     db: &State<DbConn>,
+    filters: ProductFilter,
 ) -> Result<Json<Vec<ProductGetDto>>, Responder> {
     let db = db.inner();
-    let service = ProductService(db);
     let host = construct_host(host);
 
-    let products = service
-        .load_all_mutating(|p| {
+    let ids = get_matching_ids(filters, db).await?;
+
+    let products = Product::load()
+        .with(User)
+        .with(Category)
+        .with(Tag)
+        .with(Image)
+        .filter(product::Column::Id.is_in(ids))
+        .all(db)
+        .await?
+        .into_iter()
+        .map(|p| {
             ProductGetDto::from_model_with_host(p, &host)
-                .expect("The model from the service should be properly loaded")
+                .expect("The model should be properly loaded")
         })
-        .await?;
+        .collect();
 
     Ok(Json(products))
+}
+
+async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<Vec<i32>, DbErr> {
+    let mut q = Product::find()
+        .service_filter::<ProductService>()
+        .select_only()
+        .column(product::Column::Id);
+
+    if let Some(g) = filters.gender {
+        q = q.filter(product::Column::Sex.eq(g));
+    }
+
+    if let Some(s) = filters.size {
+        q = q.filter(product::Column::Size.eq(s));
+    }
+
+    if let Some(c) = filters.color {
+        q = q.filter(product::Column::Color.eq(c));
+    }
+
+    if let Some(c) = filters.condition {
+        q = q.filter(product::Column::Condition.eq(c));
+    }
+
+    if let Some(c) = filters.categories {
+        q = q
+            .left_join(Category)
+            .group_by(product::Column::Id)
+            .filter(category::Column::Name.is_in(c));
+    }
+
+    // wish I could filter with a join inside of a loader, but alas it is not a thing,
+    // so this is probably the best way
+    let products = q
+        .into_model::<super::id_model::ProductIds>()
+        .paginate(db, filters.page_size)
+        .fetch_page(filters.page)
+        .await?;
+
+    Ok(products.into_iter().map(|p| p.id).collect())
 }

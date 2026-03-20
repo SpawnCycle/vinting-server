@@ -19,8 +19,12 @@ pub struct Model {
     pub price: u32,
 
     pub has_stock: bool,
+
+    #[sea_orm(indexed)]
     pub size: String,
     pub brand: Option<String>,
+    #[sea_orm(indexed)]
+    pub color: String,
 
     pub condition: ProductCondition,
     pub sex: ProductSex,

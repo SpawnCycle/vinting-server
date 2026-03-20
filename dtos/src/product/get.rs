@@ -24,6 +24,7 @@ pub struct ProductGetDto {
     pub price: u32,
     pub size: String,
     pub brand: Option<String>,
+    pub color: String,
 
     pub condition: ProductCondition,
     pub sex: ProductSex,
@@ -59,6 +60,7 @@ impl ProductGetDto {
             brand: m.brand,
             condition: m.condition,
             sex: m.sex,
+            color: m.color,
 
             user: UserGetDto::from(user),
 

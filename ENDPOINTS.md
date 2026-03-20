@@ -9,6 +9,14 @@
   Requires: Logged in
   Accepts: `ProductPostDto`
   Returns: `ProductGetDto`
+  URI Options:
+  - gender: `string` (optional)
+  - size: `string` (optional)
+  - color: `string` (optional)
+  - condition: `string` (optional)
+  - categories: `string[]` (optional)
+  - page: `number` (default: 0)
+  - page_size: `number` (default: 10)
 - PUT /api/products/{id}:
   Requires: Logged in
   Accepts: `ProductPostDto`

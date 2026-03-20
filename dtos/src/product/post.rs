@@ -8,6 +8,7 @@ pub struct ProductPostDto {
     pub description: String,
     pub price: u32,
     pub size: String,
+    pub color: String,
     pub brand: Option<String>,
 
     pub condition: ProductCondition,
@@ -38,6 +39,7 @@ impl From<ProductPostDto> for product::ActiveModelEx {
             .set_price(d.price)
             .set_sex(d.sex)
             .set_size(d.size)
+            .set_color(d.color)
             .set_brand(d.brand)
             .set_description(d.description)
             .set_has_stock(true)

@@ -10,6 +10,31 @@ pub struct CategoryService<'a>(pub &'a DatabaseConnection);
 impl CategoryService<'_> {
     /// # Errors
     /// Returns the error produced by sea-orm
+    pub async fn get_by_name<S>(&self, name: S) -> Result<Option<category::Model>, DbErr>
+    where
+        S: Into<String>,
+    {
+        let name = name.into() as String;
+        category::Entity::find_by_name(name)
+            .filter(Self::default_filters())
+            .one(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn get_by_name_all<S>(&self, name: S) -> Result<Option<category::Model>, DbErr>
+    where
+        S: Into<String>,
+    {
+        let name = name.into() as String;
+        category::Entity::find_by_name(name)
+            .one(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
     pub async fn exists_by_name<S>(&self, name: S) -> Result<bool, DbErr>
     where
         S: Into<String>,

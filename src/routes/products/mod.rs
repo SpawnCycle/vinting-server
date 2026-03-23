@@ -34,7 +34,7 @@ impl Fairing for ProductFairing {
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
         let r = r.mount(
             "/api/products",
-            routes![get::all, get::one, post::one, put::one],
+            routes![get::all, get::one, post::one, post::form, put::one],
         );
 
         Ok(r)
@@ -95,4 +95,19 @@ pub async fn product_put_dto_to_am_with_associations(
     Ok(product_post_dto_to_am_with_associations(dto.data, uid, db)
         .await?
         .set_id(dto.id))
+}
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::Database;
+
+    #[tokio::test]
+    async fn ignites_successfully() -> anyhow::Result<()> {
+        let db = Database::connect("sqlite::memory:").await?;
+        let r = rocket::build().manage(db).attach(super::ProductFairing);
+
+        r.ignite().await?;
+
+        Ok(())
+    }
 }

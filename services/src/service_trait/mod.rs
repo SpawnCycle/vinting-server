@@ -203,7 +203,7 @@ pub trait ServiceTrait {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use sea_orm::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, Database, DatabaseConnection,
         DbErr, sea_query::prelude::Utc,

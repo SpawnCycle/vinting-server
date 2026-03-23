@@ -26,3 +26,18 @@ impl Fairing for ImagesFairing {
         Ok(r)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::Database;
+
+    #[tokio::test]
+    async fn ignites_successfully() -> anyhow::Result<()> {
+        let db = Database::connect("sqlite::memory:").await?;
+        let r = rocket::build().manage(db).attach(super::ImagesFairing);
+
+        r.ignite().await?;
+
+        Ok(())
+    }
+}

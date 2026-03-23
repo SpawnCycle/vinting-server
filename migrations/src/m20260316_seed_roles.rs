@@ -44,7 +44,7 @@ impl MigrationTrait for Migration {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use entity::role;
     use sea_orm::{Database, DbConn, DbErr};
     use sea_orm_migration::{MigrationTrait, SchemaManager};

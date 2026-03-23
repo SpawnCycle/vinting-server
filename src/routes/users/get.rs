@@ -1,14 +1,19 @@
 use dtos::user::{get::UserGetDto, whoami::WhoamiDto};
 use entity::prelude::*;
-use rocket::{State, get, serde::json::Json};
+use rocket::{State, get, http::CookieJar, serde::json::Json};
 use sea_orm::DbConn;
 use services::{service_trait::ServiceTrait, user_service::UserService};
 
 use crate::{jwt::JwtClaims, responder::Responder};
 
 #[get("/whoami")]
-pub async fn whoami(claims: JwtClaims, db: &State<DbConn>) -> Result<Json<WhoamiDto>, Responder> {
+pub async fn whoami(
+    claims: JwtClaims,
+    db: &State<DbConn>,
+    jar: &CookieJar<'_>,
+) -> Result<Json<WhoamiDto>, Responder> {
     let db = db.inner();
+    claims.exists_or_remove(db, jar).await?;
     let user = claims
         .load(db, |q| q.with(UserRole).with(Role))
         .await?

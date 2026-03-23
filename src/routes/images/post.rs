@@ -1,8 +1,3 @@
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    io,
-};
-
 use dtos::image::get::ImageGetDto;
 use entity::{active_action::ActiveAction, image};
 use rocket::{
@@ -17,7 +12,7 @@ use rocket::{
 use sea_orm::DbConn;
 use services::{image_service::ImageService, service_trait::ServiceTrait};
 
-use crate::{constants::construct_host, jwt::JwtClaims, responder::Responder};
+use crate::{constants::construct_host, jwt::JwtClaims, responder::Responder, routes::save_image};
 
 #[derive(Debug, FromForm)]
 pub struct ImageForm<'a> {
@@ -56,22 +51,4 @@ pub async fn upload(
         m,
         &construct_host(host),
     )))
-}
-
-async fn save_image(image: &mut TempFile<'_>) -> Result<String, io::Error> {
-    let mut hasher = DefaultHasher::new();
-
-    // the more random stuff to hash, the better
-    image.len().hash(&mut hasher);
-    image.path().hash(&mut hasher);
-    if let Some(b) = image.name() {
-        b.hash(&mut hasher)
-    }
-
-    let hash = hasher.finish();
-    let out = const_hex::display(hash.to_ne_bytes()).to_string();
-    let uri = format!("./img/{out}.png");
-
-    image.move_copy_to(uri.clone()).await?;
-    Ok(uri.to_string())
 }

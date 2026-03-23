@@ -2,7 +2,10 @@ use dtos::product::get::ProductGetDto;
 use entity::{category, prelude::*, product};
 use rocket::{FromForm, State, get, http::uri::Host, serde::json::Json};
 use sea_orm::{ColumnTrait, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect};
-use services::{product_service::ProductService, service_trait::ServiceFilter};
+use services::{
+    category_service::CategoryService, product_service::ProductService,
+    service_trait::ServiceFilter,
+};
 
 use crate::{constants::construct_host, responder::Responder};
 
@@ -73,10 +76,7 @@ pub async fn all(
 }
 
 async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<Vec<i32>, DbErr> {
-    let mut q = Product::find()
-        .service_filter::<ProductService>()
-        .select_only()
-        .column(product::Column::Id);
+    let mut q = Product::find().service_filter::<ProductService>();
 
     if let Some(g) = filters.gender {
         q = q.filter(product::Column::Sex.eq(g));
@@ -98,12 +98,15 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<Vec<i32
         q = q
             .left_join(Category)
             .group_by(product::Column::Id)
+            .service_filter::<CategoryService>()
             .filter(category::Column::Name.is_in(c));
     }
 
     // wish I could filter with a join inside of a loader, but alas it is not a thing,
     // so this is probably the best way
     let products = q
+        .select_only()
+        .column(product::Column::Id)
         .into_model::<super::id_model::ProductIds>()
         .paginate(db, filters.page_size)
         .fetch_page(filters.page)

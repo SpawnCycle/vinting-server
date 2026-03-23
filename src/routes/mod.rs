@@ -15,9 +15,15 @@ mod products;
 mod tags;
 mod users;
 
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    io,
+};
+
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
+    fs::TempFile,
 };
 
 use crate::routes::{
@@ -46,4 +52,22 @@ impl Fairing for AllRouteFairing {
 
         Ok(r)
     }
+}
+
+pub async fn save_image(image: &mut TempFile<'_>) -> Result<String, io::Error> {
+    let mut hasher = DefaultHasher::new();
+
+    // the more random stuff to hash, the better
+    image.len().hash(&mut hasher);
+    image.path().hash(&mut hasher);
+    if let Some(b) = image.name() {
+        b.hash(&mut hasher)
+    }
+
+    let hash = hasher.finish();
+    let out = const_hex::display(hash.to_ne_bytes()).to_string();
+    let uri = format!("./img/{out}.png");
+
+    image.move_copy_to(uri.clone()).await?;
+    Ok(uri.to_string())
 }

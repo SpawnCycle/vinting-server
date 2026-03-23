@@ -41,7 +41,7 @@ impl<'de> de::Deserialize<'de> for EmailString {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     fn is_email<S: ToString + ?Sized>(email: &S) -> bool {

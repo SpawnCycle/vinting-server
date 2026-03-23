@@ -9,6 +9,20 @@
   Requires: Logged in
   Accepts: `ProductPostDto`
   Returns: `ProductGetDto`
+- POST /api/products/:
+  Requires: Logged in
+  Accepts: `ProductForm`
+  Returns: `ProductGetDto`
+- PUT /api/products/{id}:
+  Requires: Logged in
+  Accepts: `ProductPostDto`
+  Returns: NoContent
+- GET /api/products/{id}
+  Accepts: NoContent
+  Returns: `ProductGetDto`
+- GET /api/products
+  Accepts: NoContent
+  Returns: `ProductGetDto[]`
   URI Options:
   - gender: `string` (optional)
   - size: `string` (optional)
@@ -17,16 +31,6 @@
   - categories: `string[]` (optional)
   - page: `number` (default: 0)
   - page_size: `number` (default: 10)
-- PUT /api/products/{id}:
-  Requires: Logged in
-  Accepts: `ProductPostDto`
-  Returns: NoContent
-- GET /api/products
-  Accepts: NoContent
-  Returns: `ProductGetDto[]`
-- GET /api/products/{id}
-  Accepts: NoContent
-  Returns: `ProductGetDto`
 
 ### Users
 
@@ -109,6 +113,19 @@ LoginForm:
 ImageForm:
 
 - image: file (<!-- Currently only --> accepts png files)
+
+ProductForm:
+
+- title: string
+- description: string
+- brand: string
+- categories: string[]
+- condition: string
+- gender: string
+- size: string
+- color: string
+- price: number
+- images: file[] (Accepts the same file types and the image form)
 
 ## Types
 

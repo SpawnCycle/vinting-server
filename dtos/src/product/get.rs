@@ -26,13 +26,15 @@ pub struct ProductGetDto {
     pub brand: Option<String>,
     pub color: String,
 
+    pub has_stock: bool,
+
     pub condition: ProductCondition,
     pub sex: ProductSex,
 
     pub user: UserGetDto,
     pub categories: Vec<CategoryGetDto>,
     pub tags: Vec<TagGetDto>,
-    pub images: Vec<String>,
+    pub images: Vec<ImageGetDto>,
 }
 
 impl ProductGetDto {
@@ -54,6 +56,7 @@ impl ProductGetDto {
 
             name: m.name,
             description: m.description,
+            has_stock: m.has_stock,
 
             price: m.price,
             size: m.size,
@@ -74,7 +77,7 @@ impl ProductGetDto {
                 .images
                 .into_iter()
                 .filter(|m| ImageService::iter_filter(m.clone()))
-                .map(|m| ImageGetDto::from_model_with_host(m, host).url)
+                .map(|m| ImageGetDto::from_model_with_host(m, host))
                 .collect::<Vec<_>>(),
             tags: m
                 .tags

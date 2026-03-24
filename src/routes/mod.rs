@@ -25,10 +25,15 @@ use rocket::{
     fairing::{self, Fairing, Info, Kind},
     fs::TempFile,
 };
+use sha2::Digest;
+use tokio::{fs::try_exists, io::AsyncReadExt};
 
-use crate::routes::{
-    categories::CategoriesFairing, images::ImagesFairing, products::ProductFairing,
-    tags::TagsFairing, users::UsersFairing,
+use crate::{
+    constants::USE_SHA,
+    routes::{
+        categories::CategoriesFairing, images::ImagesFairing, products::ProductFairing,
+        tags::TagsFairing, users::UsersFairing,
+    },
 };
 
 pub struct AllRouteFairing;
@@ -54,20 +59,47 @@ impl Fairing for AllRouteFairing {
     }
 }
 
+/// Returns the uri of the image and wether or not there was a conflict
 pub async fn save_image(image: &mut TempFile<'_>) -> Result<String, io::Error> {
-    let mut hasher = DefaultHasher::new();
+    let hash = if USE_SHA && let Ok(hash) = compute_sha(image).await {
+        hash
+    } else {
+        // the more random stuff to hash, the better
+        let mut hasher = DefaultHasher::new();
+        image.len().hash(&mut hasher);
+        image.path().hash(&mut hasher);
+        if let Some(b) = image.name() {
+            b.hash(&mut hasher)
+        }
 
-    // the more random stuff to hash, the better
-    image.len().hash(&mut hasher);
-    image.path().hash(&mut hasher);
-    if let Some(b) = image.name() {
-        b.hash(&mut hasher)
-    }
+        hasher.finish().to_ne_bytes().to_vec()
+    };
 
-    let hash = hasher.finish();
-    let out = const_hex::display(hash.to_ne_bytes()).to_string();
+    let out = const_hex::display(hash).to_string();
     let uri = format!("./img/{out}.png");
 
-    image.move_copy_to(uri.clone()).await?;
+    let conflict = try_exists(&uri).await?;
+    if !conflict {
+        image.move_copy_to(uri.clone()).await?;
+    } else {
+        log::warn!("There was a conflict during file upload");
+    }
+
     Ok(uri.to_string())
+}
+
+async fn compute_sha(image: &mut TempFile<'_>) -> Result<Vec<u8>, io::Error> {
+    let mut stream = image.open().await?;
+    const BUF_SIZE: usize = 1024;
+    let mut buf = [0u8; BUF_SIZE];
+    let mut sha = sha2::Sha256::new();
+    while stream.read(&mut buf).await? != 0 {
+        sha.update(buf);
+        // reset buffer
+        buf.fill(0);
+    }
+    log::warn!("{buf:?}");
+    let hash = sha.finalize();
+
+    Ok(hash.into_iter().collect())
 }

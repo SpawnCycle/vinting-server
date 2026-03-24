@@ -35,7 +35,7 @@ log = "0.4.29"
 strum = { version = "0.28.0", features = ["derive"] }
 # all crates part of password_hash are undergoing a major version bump of the rand crate,
 # which breaks the api, notably it removes OsRng, which is a big part of how you currently hash passwords
-argon2 = "0.6.0-rc.7"
+argon2 = "0.6.0-rc.8"
 
 [dependencies]
 entity = { path = "./entity" }
@@ -56,3 +56,4 @@ jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 chrono = "0.4.44"
 dotenvy = "0.15.7"
 const-hex = "1.18.1"
+sha2 = "0.10.9"

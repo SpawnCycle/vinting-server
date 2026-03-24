@@ -13,7 +13,7 @@ use rocket::{
 use sea_orm::{DbConn, IntoActiveModel};
 use services::{service_trait::ServiceTrait, user_service::UserService};
 
-use crate::{constants::JWT_STR, jwt::JwtClaims, responder::Responder};
+use crate::{constants::JWT_KEY, jwt::JwtClaims, responder::Responder};
 
 #[derive(Debug, Clone, FromForm)]
 pub struct LoginDetails<'a> {
@@ -95,7 +95,7 @@ fn add_jwt_to_jar(uid: i32, jar: &CookieJar<'_>) -> Result<(), jsonwebtoken::err
 
     log::info!("JWT: {jwt:?}");
 
-    let cookie = Cookie::build((JWT_STR, jwt.encode()?)).http_only(true);
+    let cookie = Cookie::build((JWT_KEY, jwt.encode()?)).http_only(true);
 
     jar.add(cookie);
 

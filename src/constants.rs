@@ -6,9 +6,14 @@ use rocket::{
     http::uri::Host,
 };
 
-pub const JWT_STR: &str = "JWT";
+/// decides wether to use sha hashing,
+/// sha provides less accidental conflicts (because it parses the contents of the file),
+/// but in turn gives longer links
+pub const USE_SHA: bool = true;
 
-pub static JWT_KEY: LazyLock<Option<&str>> = LazyLock::new(|| match dotenvy::var("JWT_KEY") {
+pub const JWT_KEY: &str = "JWT";
+
+pub static JWT_SECRET: LazyLock<Option<&str>> = LazyLock::new(|| match dotenvy::var("JWT_KEY") {
     Ok(var) => Some(var.leak()),
     Err(err) => {
         if cfg!(debug_assertions) {
@@ -22,7 +27,7 @@ pub static JWT_KEY: LazyLock<Option<&str>> = LazyLock::new(|| match dotenvy::var
 });
 
 pub fn get_jwt_key() -> &'static str {
-    JWT_KEY.expect("Checked inside `LazyProcFairing`")
+    JWT_SECRET.expect("Checked inside `LazyProcFairing`")
 }
 
 // TODO: Get the value at runtime
@@ -54,7 +59,7 @@ impl Fairing for LazyProcFairing {
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
         // wish I could `.ok_or(Err(r))`, but `Rocket<_>` doesn't implement `Clone` or `Copy`
-        let Some(_) = LazyLock::<_>::force(&JWT_KEY) else {
+        let Some(_) = LazyLock::<_>::force(&JWT_SECRET) else {
             return Err(r);
         };
 

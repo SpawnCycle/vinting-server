@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use services::{service_trait::ServiceTrait, user_service::UserService};
 use thiserror::Error;
 
-use crate::constants::{JWT_STR, get_jwt_key};
+use crate::constants::{JWT_KEY, get_jwt_key};
 
 /// This is the struct used inside the JWT
 /// It implements FromRequest, so you can check if a user is signed in with the following:
@@ -58,7 +58,7 @@ impl JwtClaims {
     }
 
     pub fn remove_from(&self, jar: &CookieJar<'_>) {
-        jar.remove(JWT_STR);
+        jar.remove(JWT_KEY);
     }
 
     pub fn encode(self) -> Result<String, jsonwebtoken::errors::Error> {
@@ -125,12 +125,13 @@ impl<'a> FromRequest<'a> for JwtClaims {
 
     async fn from_request(request: &'a Request<'_>) -> Outcome<Self, Self::Error> {
         let jar = request.cookies();
-        let Some(jwt) = jar.get(JWT_STR) else {
+        let Some(jwt) = jar.get(JWT_KEY) else {
             return Outcome::Error((Status::Unauthorized, JwtError::Missing));
         };
         let jwt = jwt.to_string();
 
         let Some((_key, jwt)) = jwt.split_once("=") else {
+            jar.remove(JWT_KEY);
             return Outcome::Error((
                 Status::Unauthorized,
                 JwtError::Malformed("The JWT cookie has no value".to_string()),
@@ -149,7 +150,10 @@ impl<'a> FromRequest<'a> for JwtClaims {
 
         let jwt = match res {
             Ok(val) => val,
-            Err(err) => return Outcome::Error(err),
+            Err(err) => {
+                jar.remove(JWT_KEY);
+                return Outcome::Error(err);
+            }
         };
 
         Outcome::Success(jwt.claims)

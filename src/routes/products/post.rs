@@ -69,6 +69,7 @@ pub async fn form(
 
     let trs = db.begin().await?;
     let c_service = CategoryService(db);
+    let p_service = ProductService(db);
     let user = claims
         .fetch(db)
         .await?
@@ -107,6 +108,7 @@ pub async fn form(
                 "There was an error while saving the file".to_string()
             })
         })?;
+
         let img_am = image::ActiveModelEx::new()
             .creating()
             .set_user_id(user.id)
@@ -114,7 +116,7 @@ pub async fn form(
         am = am.add_image(img_am);
     }
 
-    let model = am.insert(db).await?;
+    let model = p_service.insert(am).await?;
     let id = model.id;
     let dto = ProductGetDto::from_model_with_host(model, &host)
         .ok_or(Responder::server_error("Could not create the product"))?;

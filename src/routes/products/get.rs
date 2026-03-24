@@ -2,6 +2,7 @@ use dtos::product::get::ProductGetDto;
 use entity::{category, prelude::*, product};
 use rocket::{FromForm, State, get, http::uri::Host, serde::json::Json};
 use sea_orm::{ColumnTrait, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect};
+use serde::Serialize;
 use services::{
     category_service::CategoryService, product_service::ProductService,
     service_trait::ServiceFilter,
@@ -20,6 +21,20 @@ pub struct ProductFilter {
     page: u64,
     #[field(default = 10)]
     page_size: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ProductPagination {
+    data: Vec<ProductGetDto>,
+    items: u64,
+    pages: u64,
+}
+
+#[derive(Debug, Clone)]
+pub struct IdPagination {
+    data: Vec<i32>,
+    items: u64,
+    pages: u64,
 }
 
 #[get("/<id>")]
@@ -51,7 +66,7 @@ pub async fn all(
     host: &Host<'_>,
     db: &State<DbConn>,
     filters: ProductFilter,
-) -> Result<Json<Vec<ProductGetDto>>, Responder> {
+) -> Result<Json<ProductPagination>, Responder> {
     let db = db.inner();
     let host = construct_host(host);
 
@@ -62,7 +77,7 @@ pub async fn all(
         .with(Category)
         .with(Tag)
         .with(Image)
-        .filter(product::Column::Id.is_in(ids))
+        .filter(product::Column::Id.is_in(ids.data))
         .all(db)
         .await?
         .into_iter()
@@ -70,12 +85,16 @@ pub async fn all(
             ProductGetDto::from_model_with_host(p, &host)
                 .expect("The model should be properly loaded")
         })
-        .collect();
+        .collect::<Vec<_>>();
 
-    Ok(Json(products))
+    Ok(Json(ProductPagination {
+        data: products,
+        items: ids.items,
+        pages: ids.pages,
+    }))
 }
 
-async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<Vec<i32>, DbErr> {
+async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagination, DbErr> {
     let mut q = Product::find().service_filter::<ProductService>();
 
     if let Some(g) = filters.gender {
@@ -104,13 +123,20 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<Vec<i32
 
     // wish I could filter with a join inside of a loader, but alas it is not a thing,
     // so this is probably the best way
-    let products = q
+    let pagination = q
         .select_only()
         .column(product::Column::Id)
         .into_model::<super::id_model::ProductIds>()
-        .paginate(db, filters.page_size)
-        .fetch_page(filters.page)
-        .await?;
+        .paginate(db, filters.page_size);
+    let page = pagination.num_items_and_pages().await?;
 
-    Ok(products.into_iter().map(|p| p.id).collect())
+    let products = pagination.fetch_page(filters.page).await?;
+
+    let items = products.into_iter().map(|p| p.id).collect::<Vec<_>>();
+
+    Ok(IdPagination {
+        data: items,
+        items: page.number_of_items,
+        pages: page.number_of_pages,
+    })
 }

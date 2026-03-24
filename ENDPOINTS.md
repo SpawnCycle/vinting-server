@@ -148,6 +148,53 @@ ProductPostDto:
 }
 ```
 
+ProductPagination:
+
+```json
+{
+  "pages": 5
+  "items": 10,
+  "data": [
+    {
+      "id": 1,
+      "created_at": "2000-01-01",
+      "modified_at": "2000-01-01",
+      "name": "string",
+      "description": "string",
+      "price": 1,
+      "size": "string",
+      "brand": "string | null",
+      "condition": "New | Like new | Used | Heavily used",
+      "sex": "Male | Female | Unisex",
+      "user": {
+        "id": 1,
+        "created_at": "2000-01-05",
+        "modified_at": "2000-01-05",
+        "name": "string",
+        "email": "email@email.com"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "created_at": "2000-01-05",
+          "modified_at": "2000-01-05",
+          "name": "string"
+        }
+      ],
+      "tags": [
+        {
+          "id": 1,
+          "created_at": "2000-01-05",
+          "modified_at": "2000-0l-05",
+          "name": "string"
+        }
+      ],
+      "images": ["string"]
+    }
+  ],
+}
+```
+
 ProductGetDto:
 
 ```json

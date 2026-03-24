@@ -166,6 +166,7 @@ ProductPagination:
       "brand": "string | null",
       "condition": "New | Like new | Used | Heavily used",
       "sex": "Male | Female | Unisex",
+      "has_stock": true,
       "user": {
         "id": 1,
         "created_at": "2000-01-05",
@@ -209,6 +210,7 @@ ProductGetDto:
   "brand": "string | null",
   "condition": "New | Like new | Used | Heavily used",
   "sex": "Male | Female | Unisex",
+  "has_stock": true,
   "user": {
     "id": 1,
     "created_at": "2000-01-05",

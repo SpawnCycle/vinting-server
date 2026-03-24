@@ -9,7 +9,6 @@ pub mod product;
 pub mod tag;
 pub mod user;
 
-// TODO: dtos
 // file structure: <model>/<method>.rs
 
 #[macro_export]

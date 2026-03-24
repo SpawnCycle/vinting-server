@@ -30,20 +30,9 @@ pub fn get_jwt_key() -> &'static str {
     JWT_SECRET.expect("Checked inside `LazyProcFairing`")
 }
 
-// TODO: Get the value at runtime
-pub fn has_tls() -> bool {
-    false
-}
-
-/// returns `https` if tls is enabled,
-/// otherwise returns `http`
-pub fn get_protocol() -> &'static str {
-    if has_tls() { "https" } else { "http" }
-}
-
-// WARN: There's probably a better way of doing this, but I don't know it
-pub fn construct_host(host: &Host<'_>) -> String {
-    format!("{}://{host}", get_protocol())
+// Will do for now, the proper way would be to check the given host against a whitelist
+pub fn construct_host(_host: &Host<'_>) -> String {
+    "http://localhost:8000".to_string()
 }
 
 pub struct LazyProcFairing;

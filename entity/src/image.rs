@@ -12,9 +12,6 @@ pub struct Model {
     pub deleted_at: Option<DateTime>,
 
     // WARN: DO NOT ACCEPT THIS FROM THE USER
-    // TODO: in the endpoint responsable for uploads:
-    // generate random file name (probably using the file's hash) and put the image there
-    // afterwards use that as the image path in the db
     pub path: String,
 
     #[sea_orm(indexed)]

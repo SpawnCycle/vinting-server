@@ -90,7 +90,7 @@ pub async fn save_image(image: &mut TempFile<'_>) -> Result<String, io::Error> {
 
 async fn compute_sha(image: &mut TempFile<'_>) -> Result<Vec<u8>, io::Error> {
     let mut stream = image.open().await?;
-    const BUF_SIZE: usize = 1024;
+    const BUF_SIZE: usize = 10 * 1024;
     let mut buf = [0u8; BUF_SIZE];
     let mut sha = sha2::Sha256::new();
     while stream.read(&mut buf).await? != 0 {
@@ -98,7 +98,6 @@ async fn compute_sha(image: &mut TempFile<'_>) -> Result<Vec<u8>, io::Error> {
         // reset buffer
         buf.fill(0);
     }
-    log::warn!("{buf:?}");
     let hash = sha.finalize();
 
     Ok(hash.into_iter().collect())

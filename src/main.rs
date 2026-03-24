@@ -1,11 +1,11 @@
 use vinting_server::{
-    constants::LazyProcFairing, database::DatabaseFairing, dotenv::DotenvFairing,
+    config, constants::LazyProcFairing, database::DatabaseFairing, dotenv::DotenvFairing,
     file_server::FileServerFairing, routes::AllRouteFairing,
 };
 
 #[rocket::launch]
 fn launch() -> _ {
-    rocket::build()
+    config::rocket()
         .attach(DotenvFairing)
         .attach(LazyProcFairing)
         .attach(FileServerFairing)

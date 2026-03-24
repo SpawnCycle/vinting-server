@@ -80,6 +80,8 @@ pub async fn form(
         .map_err(|_| Responder::bad_request("Unsupported gender given"))?;
 
     let mut am = product::ActiveModelEx::new()
+        .set_seller_id(user.id)
+        .set_has_stock(true)
         .set_name(data.title)
         .set_description(data.description)
         .set_brand(data.brand)

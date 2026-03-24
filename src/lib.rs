@@ -5,6 +5,7 @@
 //!   - Avoid code repetition where possible (with traits or macros)
 //!   - Structure things properly
 
+pub mod config;
 pub mod constants;
 pub mod database;
 pub mod dotenv;

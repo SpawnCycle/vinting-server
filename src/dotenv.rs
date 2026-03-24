@@ -4,8 +4,9 @@ use rocket::{
 };
 
 /// Environment variables that can be used with .env:
-///     - JWT_KEY: The secret key for jwt
-///     - INMEMORY(only debug): if set launches the db in memory mode
+///   - JWT_KEY: The secret key for jwt
+///   - INMEMORY(only debug): if set launches the db in memory mode
+///   - ADMIN_EMAIL: any user with the given email will be an admin
 pub struct DotenvFairing;
 
 #[async_trait]

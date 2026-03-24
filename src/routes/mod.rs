@@ -3,7 +3,7 @@
 //! which mounts all of the necessary routes
 //!
 //! Routes file structure:
-//! <table>/
+//! \<table>/
 //!     mod.rs  (location of the fairing)
 //!     get.rs  (all of the routes which accept a GET http request)
 //!     post.rs (all of the routes which accept a POST http request)

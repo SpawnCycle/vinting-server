@@ -45,18 +45,3 @@ pub async fn one(id: i32, db: &State<DbConn>) -> Result<Json<UserGetDto>, Respon
             .ok_or(Responder::not_found("There is no user with the given id"))?,
     ))
 }
-
-#[get("/echo")]
-pub async fn jwt_test(_claims: JwtClaims) -> &'static str {
-    "You have a jwt"
-}
-
-#[get("/echo_auth")]
-pub async fn auth_test(claims: JwtClaims, db: &State<DbConn>) -> Result<&'static str, Responder> {
-    let db = db.inner();
-    if UserService(db).exists_by_id(claims.uid).await? {
-        Ok("You are a real user")
-    } else {
-        Err(Responder::unauhorized("You are not a sigma"))
-    }
-}

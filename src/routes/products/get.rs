@@ -130,7 +130,10 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
         .paginate(db, filters.page_size);
     let page = pagination.num_items_and_pages().await?;
 
-    let products = pagination.fetch_page(filters.page).await?;
+    let products = pagination
+        // -1 because it returns the first page on index 0
+        .fetch_page(filters.page.saturating_sub(1))
+        .await?;
 
     let items = products.into_iter().map(|p| p.id).collect::<Vec<_>>();
 

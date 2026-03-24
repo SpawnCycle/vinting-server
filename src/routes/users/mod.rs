@@ -31,8 +31,6 @@ impl Fairing for UsersFairing {
                 get::whoami,
                 get::one,
                 get::all,
-                get::jwt_test,
-                get::auth_test
             ],
         );
 

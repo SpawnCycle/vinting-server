@@ -14,7 +14,7 @@ use rocket::{
     response::status::Created,
     serde::json::Json,
 };
-use sea_orm::{DbConn, IntoActiveModel, TransactionTrait};
+use sea_orm::{DbConn, IntoActiveModel};
 use services::{
     category_service::CategoryService, product_service::ProductService, service_trait::ServiceTrait,
 };
@@ -67,7 +67,6 @@ pub async fn form(
     claims.exists_or_remove(db, jar).await?;
     let mut data = data.into_inner();
 
-    let trs = db.begin().await?;
     let c_service = CategoryService(db);
     let p_service = ProductService(db);
     let user = claims
@@ -120,8 +119,6 @@ pub async fn form(
     let id = model.id;
     let dto = ProductGetDto::from_model_with_host(model, &host)
         .ok_or(Responder::server_error("Could not create the product"))?;
-
-    trs.commit().await?;
 
     Ok(Created::new(format!("{}/api/products/{id}", host)).body(dto.into()))
 }

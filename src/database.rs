@@ -1,17 +1,20 @@
 use std::env;
 
-use migrations::MigratorTraitSelf;
+use entity::{active_action::ActiveAction, prelude::*, role};
+use migrations::{MigratorTraitSelf, constants::ADMIN_ROLE};
 use rocket::{
     Build, Rocket, async_trait,
     fairing::{self, Fairing, Info, Kind},
 };
 use sea_orm::{
-    DatabaseConnection, SqlxError,
+    DatabaseConnection, DbConn, DbErr, IntoActiveModel, SqlxError,
     sqlx::{
         SqlitePool,
         sqlite::{SqliteConnectOptions, SqlitePoolOptions},
     },
 };
+
+use crate::constants::ADMIN_EMAIL;
 
 pub struct DatabaseFairing;
 
@@ -40,6 +43,11 @@ impl Fairing for DatabaseFairing {
             }
         };
 
+        if let Err(err) = register_admin(&db).await {
+            log::error!("Error while registering admin: {err}");
+            return Err(r);
+        }
+
         match migrations::Migrator.up(&db, None).await {
             Ok(_) => Ok(r.manage(db)),
             Err(err) => {
@@ -48,6 +56,25 @@ impl Fairing for DatabaseFairing {
             }
         }
     }
+}
+
+async fn register_admin(db: &DbConn) -> Result<(), DbErr> {
+    let Some(email) = *ADMIN_EMAIL else {
+        return Ok(());
+    };
+    let Some(user) = User::find_by_email(email).one(db).await? else {
+        return Ok(());
+    };
+    let role = match Role::find_by_name(ADMIN_ROLE).one(db).await? {
+        Some(val) => val.into_active_model().into_ex(),
+        None => role::ActiveModelEx::new().set_name(ADMIN_ROLE).creating(),
+    };
+
+    let am = user.into_active_model().into_ex().add_role(role);
+
+    let _ = am.save(db).await?;
+
+    Ok(())
 }
 
 async fn connect_db() -> Result<SqlitePool, SqlxError> {

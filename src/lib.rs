@@ -1,9 +1,9 @@
 //! How to not get executed when making a contribution to this repo:
-//!     - Think
-//!     - Read the errors the compiler gives you
-//!     - Read the warnings the compiler and linter give you
-//!     - Avoid code repetition where possible (with traits or macros)
-//!     - Structure things properly
+//!   - Think
+//!   - Read the errors the compiler gives you
+//!   - Read the warnings the compiler and linter give you
+//!   - Avoid code repetition where possible (with traits or macros)
+//!   - Structure things properly
 
 pub mod constants;
 pub mod database;

@@ -13,7 +13,7 @@ pub struct UserPostDto {
 
 impl From<UserPostDto> for user::ActiveModelEx {
     fn from(d: UserPostDto) -> Self {
-        let argon = Argon2::default();
+        let argon = Argon2::from(crate::get_argon_params());
         let pwd_hash = argon
             .hash_password(d.password.as_bytes())
             .expect("Hashing should not error if configured properly")

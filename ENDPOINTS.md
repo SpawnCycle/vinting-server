@@ -29,7 +29,7 @@
   - color: `string` (optional)
   - condition: `string` (optional)
   - categories: `string[]` (optional)
-  - page: `number` (default: 0)
+  - page: `number` (default: 1, first page has the index of 1)
   - page_size: `number` (default: 10)
 
 ### Users

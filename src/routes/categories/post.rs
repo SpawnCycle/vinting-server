@@ -1,17 +1,26 @@
 use dtos::category::{get::CategoryGetDto, post::CategoryPostDto};
+use migrations::constants::ADMIN_ROLE;
 use rocket::{State, http::uri::Host, post, response::status::Created, serde::json::Json};
 use sea_orm::DbConn;
 use services::{category_service::CategoryService, service_trait::ServiceTrait};
 
-use crate::{constants::construct_host, responder::Responder};
+use crate::{constants::construct_host, jwt::JwtClaims, responder::Responder};
 
 #[post("/", format = "application/json", data = "<data>")]
 pub async fn one(
     host: &Host<'_>,
+    claims: JwtClaims,
     db: &State<DbConn>,
     data: Json<CategoryPostDto>,
 ) -> Result<Created<Json<CategoryGetDto>>, Responder> {
     let db = db.inner();
+
+    if !claims.has_role(db, ADMIN_ROLE).await? {
+        return Err(Responder::unauhorized(
+            "Category Modifications are only allowed for admin users",
+        ));
+    }
+
     let service = CategoryService(db);
     let category = data.into_inner();
 

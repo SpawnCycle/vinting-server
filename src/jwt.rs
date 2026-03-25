@@ -1,5 +1,5 @@
 use chrono::{Duration, Local};
-use entity::user;
+use entity::{prelude::*, user};
 use jsonwebtoken::{
     DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::ErrorKind,
 };
@@ -8,7 +8,7 @@ use rocket::{
     http::{CookieJar, Status},
     request::{FromRequest, Outcome},
 };
-use sea_orm::{DbConn, DbErr, EntityLoaderTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, DbConn, DbErr, EntityLoaderTrait, EntityTrait, QueryFilter, SelectExt};
 use serde::{Deserialize, Serialize};
 use services::{service_trait::ServiceTrait, user_service::UserService};
 use thiserror::Error;
@@ -55,6 +55,14 @@ impl JwtClaims {
         let exp = (now + Duration::days(30)).timestamp();
 
         JwtClaims { exp, iat, uid }
+    }
+
+    pub async fn has_role(&self, db: &DbConn, role: &str) -> Result<bool, DbErr> {
+        Role::find_by_name(role)
+            .inner_join(User)
+            .filter(user::Column::Id.eq(self.uid))
+            .exists(db)
+            .await
     }
 
     pub fn remove_from(&self, jar: &CookieJar<'_>) {

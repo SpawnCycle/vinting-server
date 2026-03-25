@@ -1,17 +1,26 @@
 use dtos::category::put::CategoryPutDto;
+use migrations::constants::ADMIN_ROLE;
 use rocket::{State, put, response::status::NoContent, serde::json::Json};
 use sea_orm::DbConn;
 use services::{category_service::CategoryService, service_trait::ServiceTrait};
 
-use crate::responder::Responder;
+use crate::{jwt::JwtClaims, responder::Responder};
 
 #[put("/<id>", format = "application/json", data = "<data>")]
 pub async fn one(
     db: &State<DbConn>,
+    claims: JwtClaims,
     id: i32,
     data: Json<CategoryPutDto>,
 ) -> Result<NoContent, Responder> {
     let db = db.inner();
+
+    if !claims.has_role(db, ADMIN_ROLE).await? {
+        return Err(Responder::unauhorized(
+            "Category Modifications are only allowed for admin users",
+        ));
+    }
+
     let service = CategoryService(db);
     let category = data.into_inner();
 

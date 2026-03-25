@@ -2,9 +2,39 @@
 
 use std::io;
 
-use rocket::Responder;
+use chrono::{DateTime, Utc};
+use rocket::{
+    Responder,
+    serde::json::{self, Json},
+};
 use sea_orm::DbErr;
 use serde::Serialize;
+
+macro_rules! http_err {
+    ($name:ident, $code:expr, $msg:ident) => {{
+        let err = ErrorMessage::new($code, $msg.to_string());
+        let msg = rocket::serde::json::to_string(&err).expect("The serialization shouldn't fail");
+        Self::$name(msg)
+    }};
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ErrorMessage {
+    code: u16,
+    timestamp: DateTime<Utc>,
+    message: String,
+}
+
+impl ErrorMessage {
+    pub fn new(code: u16, message: String) -> Self {
+        let now = Utc::now();
+        Self {
+            code,
+            message,
+            timestamp: now,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Responder)]
 pub enum Responder {
@@ -22,29 +52,29 @@ pub enum Responder {
 
 impl Responder {
     pub fn bad_request(msg: impl ToString) -> Self {
-        Self::BadRequest(msg.to_string())
+        http_err!(BadRequest, 403, msg)
     }
 
     pub fn conflict(msg: impl ToString) -> Self {
-        Self::Conflict(msg.to_string())
+        http_err!(Conflict, 409, msg)
     }
 
     pub fn not_found(msg: impl ToString) -> Self {
-        Self::NotFound(msg.to_string())
+        http_err!(NotFound, 404, msg)
     }
 
     pub fn server_error(msg: impl ToString) -> Self {
-        Self::BadRequest(msg.to_string())
+        http_err!(ServerError, 500, msg)
     }
 
     pub fn unauhorized(msg: impl ToString) -> Self {
-        Self::BadRequest(msg.to_string())
+        http_err!(Unauhorized, 401, msg)
     }
 }
 
 impl From<DbErr> for Responder {
     fn from(value: DbErr) -> Self {
-        Self::ServerError(value.to_string())
+        Self::server_error(value)
     }
 }
 

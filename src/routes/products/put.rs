@@ -29,6 +29,18 @@ pub async fn one(
         ));
     }
 
+    if service
+        .get_by_id(id)
+        .await?
+        .ok_or(Responder::not_found(
+            "Couldn't find a product with the given id",
+        ))?
+        .seller_id
+        != claims.uid
+    {
+        return Err(Responder::unauhorized("You can't modify others' products"));
+    }
+
     let _ = service
         .update(product_put_dto_to_am_with_associations(data.into_inner(), claims.uid, db).await?)
         .await?;

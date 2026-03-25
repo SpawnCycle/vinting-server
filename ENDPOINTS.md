@@ -7,15 +7,11 @@
 
 - POST /api/products/:
   Requires: Logged in
-  Accepts: `ProductPostDto`
-  Returns: `ProductGetDto`
-- POST /api/products/:
-  Requires: Logged in
-  Accepts: `ProductForm`
+  Accepts: `ProductPostDto` | `ProductForm`
   Returns: `ProductGetDto`
 - PUT /api/products/{id}:
-  Requires: Logged in
-  Accepts: `ProductPostDto`
+  Requires: Logged in and the product is yours
+  Accepts: `ProductPutDto`
   Returns: NoContent
 - GET /api/products/{id}
   Accepts: NoContent
@@ -38,7 +34,7 @@
   Accepts: `SignupDto`
   Returns: `UserDto`
 - POST /api/users/login:
-  Accepts: `LoginForm`
+  Accepts: `LoginDto` | `LoginForm`
   Returns: NoContent
 - POST /api/users/logout:
   Accepts: NoContent
@@ -88,9 +84,11 @@
 ### Categories
 
 - POST /api/categories/:
+  Requires: Admin role
   Accepts: `CategoryPostDto`
   Returns `CategoryGetDto`
 - PUT /api/categories/{id}:
+  Requires: Admin role
   Accepts: `CategoryPutDto`
   Returns: NoContent
 - GET /api/categories/{id}:
@@ -129,12 +127,43 @@ ProductForm:
 
 ## Types
 
+### Error
+
+Any and all errors are returned in this object
+
+```json
+{
+  "code": 400,
+  "timestamp": "2000-01-01 andsomeotherutcstuff",
+  "message": "string"
+}
+```
+
 ### Products
 
 ProductPostDto:
 
 ```json
 {
+  "name": "string",
+  "description": "string",
+  "price": 1,
+  "size": "string",
+  "color": "string",
+  "brand": "string | null",
+  "condition": "New | Like new | Used | Heavily used",
+  "sex": "Male | Female | Unisex",
+  "categories": [1],
+  "tags": [1],
+  "images": [1]
+}
+```
+
+ProductPutDto:
+
+```json
+{
+  "id": 1,
   "name": "string",
   "description": "string",
   "price": 1,

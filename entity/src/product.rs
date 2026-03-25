@@ -13,17 +13,18 @@ pub struct Model {
     #[sea_orm(indexed)]
     pub deleted_at: Option<DateTime>,
 
+    #[sea_orm(indexed)]
     pub name: String,
+    #[sea_orm(indexed)]
     pub description: String,
+    #[sea_orm(indexed)]
+    pub brand: Option<String>,
 
     pub price: u32,
 
     pub has_stock: bool,
 
-    #[sea_orm(indexed)]
     pub size: String,
-    pub brand: Option<String>,
-    #[sea_orm(indexed)]
     pub color: String,
 
     pub condition: ProductCondition,

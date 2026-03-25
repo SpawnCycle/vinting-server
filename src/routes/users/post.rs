@@ -82,7 +82,7 @@ pub async fn login_json(
     Ok(NoContent)
 }
 
-#[post("/login", data = "<data>")]
+#[post("/login", data = "<data>", rank = 2)]
 pub async fn login_form(
     db: &State<DbConn>,
     data: Form<LoginDetails<'_>>,

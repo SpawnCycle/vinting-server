@@ -26,7 +26,8 @@ impl Fairing for UsersFairing {
             "/api/users",
             routes![
                 post::signup,
-                post::login,
+                post::login_form,
+                post::login_json,
                 post::logout,
                 get::whoami,
                 get::one,

@@ -8,7 +8,7 @@ use rocket::{
     http::{Cookie, CookieJar, uri::Host},
     post,
     response::status::{Created, NoContent},
-    serde::json::Json,
+    serde::{Deserialize, json::Json},
 };
 use sea_orm::{DbConn, IntoActiveModel};
 use services::{service_trait::ServiceTrait, user_service::UserService};
@@ -19,7 +19,7 @@ use crate::{
     responder::Responder,
 };
 
-#[derive(Debug, Clone, FromForm)]
+#[derive(Debug, Clone, FromForm, Deserialize)]
 pub struct LoginDetails<'a> {
     email: &'a str,
     password: &'a str,
@@ -67,13 +67,37 @@ pub async fn signup(
     Ok(Created::new(format!("{host}/api/users/{}", user.id)).body(Json(user.into())))
 }
 
+#[post("/login", format = "application/json", data = "<data>")]
+pub async fn login_json(
+    db: &State<DbConn>,
+    data: Json<LoginDetails<'_>>,
+    jar: &CookieJar<'_>,
+) -> Result<NoContent, Responder> {
+    let db = db.inner();
+
+    let user = verify_user(db, data.into_inner()).await?;
+
+    add_jwt_to_jar(user.id, jar)?;
+
+    Ok(NoContent)
+}
+
 #[post("/login", data = "<data>")]
-pub async fn login(
+pub async fn login_form(
     db: &State<DbConn>,
     data: Form<LoginDetails<'_>>,
     jar: &CookieJar<'_>,
 ) -> Result<NoContent, Responder> {
     let db = db.inner();
+
+    let user = verify_user(db, data.into_inner()).await?;
+
+    add_jwt_to_jar(user.id, jar)?;
+
+    Ok(NoContent)
+}
+
+pub async fn verify_user(db: &DbConn, data: LoginDetails<'_>) -> Result<user::Model, Responder> {
     let service = UserService(db);
 
     let user = service
@@ -92,9 +116,7 @@ pub async fn login(
         return Err(Responder::unauhorized("Wrong password"));
     }
 
-    add_jwt_to_jar(user.id, jar)?;
-
-    Ok(NoContent)
+    Ok(user)
 }
 
 #[post("/logout")]

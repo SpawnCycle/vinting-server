@@ -139,6 +139,7 @@ ProductPostDto:
   "description": "string",
   "price": 1,
   "size": "string",
+  "color": "string",
   "brand": "string | null",
   "condition": "New | Like new | Used | Heavily used",
   "sex": "Male | Female | Unisex",

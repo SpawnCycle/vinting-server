@@ -1,7 +1,9 @@
 use dtos::product::get::ProductGetDto;
 use entity::{category, prelude::*, product};
 use rocket::{FromForm, State, get, http::uri::Host, serde::json::Json};
-use sea_orm::{ColumnTrait, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect};
+use sea_orm::{
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect,
+};
 use serde::Serialize;
 use services::{
     category_service::CategoryService, product_service::ProductService,
@@ -12,6 +14,7 @@ use crate::{constants::construct_host, responder::Responder};
 
 #[derive(Debug, Clone, FromForm)]
 pub struct ProductFilter {
+    query: Option<String>,
     gender: Option<String>,
     size: Option<String>,
     color: Option<String>,
@@ -96,6 +99,15 @@ pub async fn all(
 
 async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagination, DbErr> {
     let mut q = Product::find().service_filter::<ProductService>();
+
+    if let Some(s) = filters.query {
+        q = q.filter(
+            Condition::any()
+                .add(product::Column::Name.like(s.to_owned()))
+                .add(product::Column::Description.like(s.to_owned()))
+                .add(product::Column::Brand.like(s.to_owned())),
+        );
+    }
 
     if let Some(g) = filters.gender {
         q = q.filter(product::Column::Sex.eq(g));

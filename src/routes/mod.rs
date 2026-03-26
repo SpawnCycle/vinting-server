@@ -10,6 +10,7 @@
 //!     put.rs  (all of the routes which accept a PUT http request)
 
 mod categories;
+mod id_model;
 mod images;
 mod products;
 mod tags;

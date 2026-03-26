@@ -132,7 +132,14 @@ pub async fn form(
     }
 
     let model = p_service.insert(am).await?;
+    // We need to load it again, because if there are no fields for one of the m-n tables,
+    // it will return that HasMany value as unloaded
+    let model = p_service
+        .load_by_id(model.id)
+        .await?
+        .expect("We just created it");
     let id = model.id;
+
     let dto = ProductGetDto::from_model_with_host(model, &host)
         .ok_or(Responder::server_error("Could not create the product"))?;
 
@@ -152,7 +159,7 @@ pub async fn one(
     claims.exists_or_remove(db, jar).await?;
 
     let model = service
-        .insert(product_post_dto_to_am_with_associations(data.into_inner(), claims.uid, db).await?)
+        .insert(product_post_dto_to_am_with_associations(&data, claims.uid, db).await?)
         .await?;
     let model = service
         .load_by_id(model.id)

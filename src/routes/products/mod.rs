@@ -1,5 +1,4 @@
 mod get;
-mod id_model;
 mod post;
 mod put;
 
@@ -43,7 +42,7 @@ impl Fairing for ProductFairing {
 
 // so this is the way to go, very sad
 pub async fn product_post_dto_to_am_with_associations(
-    dto: ProductPostDto,
+    dto: &ProductPostDto,
     uid: i32,
     db: &DbConn,
 ) -> Result<product::ActiveModelEx, Responder> {
@@ -51,9 +50,9 @@ pub async fn product_post_dto_to_am_with_associations(
     let c_service = CategoryService(db);
     let t_service = TagService(db);
 
-    for c_id in dto.categories {
+    for c_id in dto.categories.iter() {
         let c = c_service
-            .get_by_id(c_id)
+            .get_by_id(*c_id)
             .await?
             .ok_or(Responder::not_found(format!(
                 "There is no category with the id of {c_id}"
@@ -61,9 +60,9 @@ pub async fn product_post_dto_to_am_with_associations(
         am = am.add_category(c.into_active_model());
     }
 
-    for t_id in dto.tags {
+    for t_id in dto.tags.iter() {
         let t = t_service
-            .get_by_id(t_id)
+            .get_by_id(*t_id)
             .await?
             .ok_or(Responder::not_found(format!(
                 "There is no tag with the id of {t_id}"
@@ -71,8 +70,8 @@ pub async fn product_post_dto_to_am_with_associations(
         am = am.add_tag(t.into_active_model());
     }
 
-    for i_id in dto.images {
-        let i = Image::find_by_id(i_id)
+    for i_id in dto.images.iter() {
+        let i = Image::find_by_id(*i_id)
             .filter(image::Column::UserId.eq(uid))
             .service_filter::<ImageService>()
             .one(db)
@@ -88,13 +87,14 @@ pub async fn product_post_dto_to_am_with_associations(
 
 // insane name
 pub async fn product_put_dto_to_am_with_associations(
-    dto: ProductPutDto,
+    dto: &ProductPutDto,
     uid: i32,
     db: &DbConn,
 ) -> Result<product::ActiveModelEx, Responder> {
-    Ok(product_post_dto_to_am_with_associations(dto.data, uid, db)
+    Ok(product_post_dto_to_am_with_associations(&dto.data, uid, db)
         .await?
-        .set_id(dto.id))
+        .set_id(dto.id)
+        .set_has_stock(dto.has_stock))
 }
 
 #[cfg(test)]

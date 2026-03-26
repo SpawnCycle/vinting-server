@@ -10,7 +10,7 @@ use services::{
     service_trait::ServiceFilter,
 };
 
-use crate::{constants::construct_host, responder::Responder};
+use crate::{constants::construct_host, responder::Responder, routes::id_model::IdModel};
 
 #[derive(Debug, Clone, FromForm)]
 pub struct ProductFilter {
@@ -138,7 +138,7 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
     let pagination = q
         .select_only()
         .column(product::Column::Id)
-        .into_model::<super::id_model::ProductId>()
+        .into_model::<IdModel>()
         .paginate(db, filters.page_size);
     let page = pagination.num_items_and_pages().await?;
 

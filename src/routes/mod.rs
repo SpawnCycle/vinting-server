@@ -102,3 +102,18 @@ async fn compute_sha(image: &mut TempFile<'_>) -> Result<Vec<u8>, io::Error> {
 
     Ok(hash.into_iter().collect())
 }
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::Database;
+
+    #[tokio::test]
+    async fn ignites_successfully() -> anyhow::Result<()> {
+        let db = Database::connect("sqlite::memory:").await?;
+        let r = rocket::build().manage(db).attach(super::AllRouteFairing);
+
+        r.ignite().await?;
+
+        Ok(())
+    }
+}

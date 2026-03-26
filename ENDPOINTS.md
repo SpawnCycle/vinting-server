@@ -118,6 +118,7 @@ ProductForm:
 - description: string
 - brand: string
 - categories: string[]
+- tags: string[] (if a tag doesn't exist, it will create it)
 - condition: string
 - gender: string
 - size: string

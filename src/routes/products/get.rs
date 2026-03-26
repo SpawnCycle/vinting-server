@@ -138,7 +138,7 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
     let pagination = q
         .select_only()
         .column(product::Column::Id)
-        .into_model::<super::id_model::ProductIds>()
+        .into_model::<super::id_model::ProductId>()
         .paginate(db, filters.page_size);
     let page = pagination.num_items_and_pages().await?;
 

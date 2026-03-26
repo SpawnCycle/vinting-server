@@ -32,6 +32,7 @@ impl Fairing for UsersFairing {
                 get::whoami,
                 get::one,
                 get::all,
+                get::user_products,
             ],
         );
 

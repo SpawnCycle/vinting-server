@@ -3,6 +3,7 @@ use entity::{
     active_action::ActiveAction,
     image,
     product::{self, ProductCondition, ProductSex},
+    tag,
 };
 use rocket::{
     FromForm, State,
@@ -16,7 +17,8 @@ use rocket::{
 };
 use sea_orm::{DbConn, IntoActiveModel};
 use services::{
-    category_service::CategoryService, product_service::ProductService, service_trait::ServiceTrait,
+    category_service::CategoryService, product_service::ProductService,
+    service_trait::ServiceTrait, tag_service::TagService,
 };
 
 use crate::{
@@ -44,6 +46,7 @@ pub struct ProductForm<'a> {
     description: String,
     brand: String,
     categories: Vec<String>,
+    tags: Vec<String>,
     condition: String,
     gender: String,
     size: String,
@@ -69,6 +72,7 @@ pub async fn form(
 
     let c_service = CategoryService(db);
     let p_service = ProductService(db);
+    let t_service = TagService(db);
     let user = claims
         .fetch(db)
         .await?
@@ -99,6 +103,16 @@ pub async fn form(
                 "There is no category named {c_name}"
             )))?;
         am = am.add_category(c.into_active_model());
+    }
+
+    for t_name in data.tags {
+        let t = t_service
+            .get_by_name(&t_name)
+            .await?
+            .map_or(tag::ActiveModelEx::new().set_name(t_name).creating(), |m| {
+                m.into_active_model().into_ex()
+            });
+        am = am.add_tag(t);
     }
 
     for img in data.images.iter_mut() {

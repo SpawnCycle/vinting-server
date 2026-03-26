@@ -2,7 +2,7 @@ use crate::service_trait::{ServiceFilter, ServiceTrait};
 use entity::{prelude::*, product};
 use sea_orm::{
     ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityLoaderTrait, EntityTrait,
-    PrimaryKeyTrait,
+    PrimaryKeyTrait, QueryFilter,
 };
 
 pub struct ProductService<'a>(pub &'a DatabaseConnection);
@@ -65,6 +65,44 @@ impl ProductService<'_> {
             .with(Tag)
             .with(Image)
             .service_filter::<Self>()
+            .all(self.get_db())
+            .await?
+            .into_iter()
+            .map(f)
+            .collect())
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_all_with(&self, filter: Condition) -> Result<Vec<product::ModelEx>, DbErr> {
+        Product::load()
+            .with(User)
+            .with(Category)
+            .with(Tag)
+            .with(Image)
+            .service_filter::<Self>()
+            .filter(filter)
+            .all(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_all_with_mutating<T, F>(
+        &self,
+        filter: Condition,
+        f: F,
+    ) -> Result<Vec<T>, DbErr>
+    where
+        F: FnMut(product::ModelEx) -> T,
+    {
+        Ok(Product::load()
+            .with(User)
+            .with(Category)
+            .with(Tag)
+            .with(Image)
+            .service_filter::<Self>()
+            .filter(filter)
             .all(self.get_db())
             .await?
             .into_iter()

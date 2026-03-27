@@ -1,3 +1,5 @@
+#![recursion_limit = "256"]
+
 pub mod category_service;
 pub mod image_service;
 pub mod order_service;

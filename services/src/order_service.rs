@@ -1,13 +1,19 @@
 use crate::service_trait::ServiceTrait;
 use entity::order;
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityTrait, PrimaryKeyTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    PrimaryKeyTrait, TransactionTrait,
 };
 
-pub struct OrderService<'a>(pub &'a DatabaseConnection);
+pub struct OrderService<'a, C: TransactionTrait + ConnectionTrait + Send>(pub &'a C);
 
-impl ServiceTrait for OrderService<'_> {
+impl<C> ServiceTrait for OrderService<'_, C>
+where
+    C: ConnectionTrait + Send,
+    C: TransactionTrait<Transaction = DatabaseTransaction>,
+{
     type Entity = order::Entity;
+    type Connection = C;
 
     fn iter_filter<M>(m: M) -> bool
     where
@@ -22,7 +28,7 @@ impl ServiceTrait for OrderService<'_> {
         Condition::all().add(order::Column::DeletedAt.is_null())
     }
 
-    fn get_db(&self) -> &DatabaseConnection {
+    fn get_db(&self) -> &C {
         self.0
     }
 
@@ -35,15 +41,15 @@ impl ServiceTrait for OrderService<'_> {
 
     fn insert_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.insert(db)
     }
 
     fn update_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.update(db)
     }
 }

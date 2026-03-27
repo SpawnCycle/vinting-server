@@ -15,7 +15,7 @@ use rocket::{
     response::status::Created,
     serde::json::Json,
 };
-use sea_orm::{DbConn, IntoActiveModel};
+use sea_orm::{DbConn, IntoActiveModel, TransactionTrait};
 use services::{
     category_service::CategoryService, product_service::ProductService,
     service_trait::ServiceTrait, tag_service::TagService,
@@ -65,7 +65,8 @@ pub async fn form(
     db: &State<DbConn>,
     data: Form<ProductForm<'_>>,
 ) -> Result<Created<Json<ProductGetDto>>, Responder> {
-    let db = db.inner();
+    let trx = db.begin().await?;
+    let db = &trx;
     let host = construct_host(host);
     claims.exists_or_remove(db, jar).await?;
     let mut data = data.into_inner();
@@ -143,6 +144,8 @@ pub async fn form(
     let dto = ProductGetDto::from_model_with_host(model, &host)
         .ok_or(Responder::server_error("Could not create the product"))?;
 
+    trx.commit().await?;
+
     Ok(Created::new(format!("{}/api/products/{id}", host)).body(dto.into()))
 }
 
@@ -154,7 +157,8 @@ pub async fn one(
     db: &State<DbConn>,
     data: Json<ProductPostDto>,
 ) -> Result<Created<Json<ProductGetDto>>, Responder> {
-    let db = db.inner();
+    let trx = db.begin().await?;
+    let db = &trx;
     let service = ProductService(db);
     claims.exists_or_remove(db, jar).await?;
 
@@ -169,6 +173,8 @@ pub async fn one(
     let id = model.id;
     let dto = ProductGetDto::from_model_with_host(model, &host)
         .ok_or(Responder::server_error("Could not construct the dto"))?;
+
+    trx.commit().await?;
 
     Ok(Created::new(format!("{host}/api/products/{id}")).body(Json(dto)))
 }

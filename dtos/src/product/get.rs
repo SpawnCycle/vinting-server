@@ -1,5 +1,5 @@
 use entity::product::{self, ProductCondition, ProductSex};
-use sea_orm::prelude::DateTime;
+use sea_orm::{DbConn, prelude::DateTime};
 use serde::Serialize;
 use services::{
     category_service::CategoryService, image_service::ImageService, service_trait::ServiceTrait,
@@ -70,19 +70,19 @@ impl ProductGetDto {
             categories: m
                 .categories
                 .into_iter()
-                .filter(|m| CategoryService::iter_filter(m.clone()))
+                .filter(|m| CategoryService::<DbConn>::iter_filter(m.clone()))
                 .map(CategoryGetDto::from)
                 .collect::<Vec<_>>(),
             images: m
                 .images
                 .into_iter()
-                .filter(|m| ImageService::iter_filter(m.clone()))
+                .filter(|m| ImageService::<DbConn>::iter_filter(m.clone()))
                 .map(|m| ImageGetDto::from_model_with_host(m, host))
                 .collect::<Vec<_>>(),
             tags: m
                 .tags
                 .into_iter()
-                .filter(|m| TagService::iter_filter(m.clone()))
+                .filter(|m| TagService::<DbConn>::iter_filter(m.clone()))
                 .map(TagGetDto::from)
                 .collect::<Vec<_>>(),
         })

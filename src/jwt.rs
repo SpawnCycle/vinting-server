@@ -8,9 +8,15 @@ use rocket::{
     http::{CookieJar, Status},
     request::{FromRequest, Outcome},
 };
-use sea_orm::{ColumnTrait, DbConn, DbErr, EntityLoaderTrait, EntityTrait, QueryFilter, SelectExt};
+use sea_orm::{
+    ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityLoaderTrait, EntityTrait, QueryFilter,
+    SelectExt,
+};
 use serde::{Deserialize, Serialize};
-use services::{service_trait::ServiceTrait, user_service::UserService};
+use services::{
+    service_trait::{ServiceFilter, ServiceTrait},
+    user_service::UserService,
+};
 use thiserror::Error;
 
 use crate::constants::{JWT_KEY, get_jwt_key};
@@ -57,7 +63,10 @@ impl JwtClaims {
         JwtClaims { exp, iat, uid }
     }
 
-    pub async fn has_role(&self, db: &DbConn, role: &str) -> Result<bool, DbErr> {
+    pub async fn has_role<C>(&self, db: &C, role: &str) -> Result<bool, DbErr>
+    where
+        C: ConnectionTrait + Send,
+    {
         Role::find_by_name(role)
             .inner_join(User)
             .filter(user::Column::Id.eq(self.uid))
@@ -77,7 +86,10 @@ impl JwtClaims {
         )
     }
 
-    pub async fn exists_or_remove(&self, db: &DbConn, jar: &CookieJar<'_>) -> Result<bool, DbErr> {
+    pub async fn exists_or_remove<C>(&self, db: &C, jar: &CookieJar<'_>) -> Result<bool, DbErr>
+    where
+        C: ConnectionTrait + Send,
+    {
         let exists = self.exists(db).await?;
         if !exists {
             self.remove_from(jar);
@@ -85,17 +97,25 @@ impl JwtClaims {
         Ok(exists)
     }
 
-    pub async fn exists(&self, db: &DbConn) -> Result<bool, DbErr> {
-        let service = UserService(db);
-
-        service.exists_by_id(self.uid).await
+    pub async fn exists<C>(&self, db: &C) -> Result<bool, DbErr>
+    where
+        C: ConnectionTrait + Send,
+    {
+        User::find_by_id(self.uid)
+            .service_filter::<UserService<DbConn>>()
+            .exists(db)
+            .await
     }
 
     /// fetches the user from the db using the filters defined in `UserService`
-    pub async fn fetch(&self, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
-        let service = UserService(db);
-
-        service.get_by_id(self.uid).await
+    pub async fn fetch<C>(&self, db: &C) -> Result<Option<user::Model>, DbErr>
+    where
+        C: ConnectionTrait + Send,
+    {
+        User::find_by_id(self.uid)
+            .service_filter::<UserService<DbConn>>()
+            .one(db)
+            .await
     }
 
     /// fetches the user from the db without any filters
@@ -110,7 +130,7 @@ impl JwtClaims {
         mut with: impl FnMut(user::EntityLoader) -> user::EntityLoader,
     ) -> Result<Option<user::ModelEx>, DbErr> {
         with(user::Entity::load().filter_by_id(self.uid))
-            .filter(UserService::default_filters())
+            .filter(UserService::<DbConn>::default_filters())
             .one(db)
             .await
     }

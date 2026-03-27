@@ -9,7 +9,10 @@ use rocket::{
     fairing::{self, Fairing, Info, Kind},
     routes,
 };
-use sea_orm::{ColumnTrait, DbConn, EntityTrait, IntoActiveModel, QueryFilter};
+use sea_orm::{
+    ColumnTrait, ConnectionTrait, DatabaseTransaction, DbConn, EntityTrait, IntoActiveModel,
+    QueryFilter, TransactionTrait,
+};
 use services::{
     category_service::CategoryService,
     image_service::ImageService,
@@ -41,11 +44,15 @@ impl Fairing for ProductFairing {
 }
 
 // so this is the way to go, very sad
-pub async fn product_post_dto_to_am_with_associations(
+pub async fn product_post_dto_to_am_with_associations<C>(
     dto: &ProductPostDto,
     uid: i32,
-    db: &DbConn,
-) -> Result<product::ActiveModelEx, Responder> {
+    db: &C,
+) -> Result<product::ActiveModelEx, Responder>
+where
+    C: ConnectionTrait + Send,
+    C: TransactionTrait<Transaction = DatabaseTransaction>,
+{
     let mut am = dto.clone().into_active_model(uid);
     let c_service = CategoryService(db);
     let t_service = TagService(db);
@@ -73,7 +80,7 @@ pub async fn product_post_dto_to_am_with_associations(
     for i_id in dto.images.iter() {
         let i = Image::find_by_id(*i_id)
             .filter(image::Column::UserId.eq(uid))
-            .service_filter::<ImageService>()
+            .service_filter::<ImageService<DbConn>>()
             .one(db)
             .await?
             .ok_or(Responder::not_found(format!(
@@ -86,11 +93,15 @@ pub async fn product_post_dto_to_am_with_associations(
 }
 
 // insane name
-pub async fn product_put_dto_to_am_with_associations(
+pub async fn product_put_dto_to_am_with_associations<C>(
     dto: &ProductPutDto,
     uid: i32,
-    db: &DbConn,
-) -> Result<product::ActiveModelEx, Responder> {
+    db: &C,
+) -> Result<product::ActiveModelEx, Responder>
+where
+    C: ConnectionTrait + Send,
+    C: TransactionTrait<Transaction = DatabaseTransaction>,
+{
     Ok(product_post_dto_to_am_with_associations(&dto.data, uid, db)
         .await?
         .set_id(dto.id)

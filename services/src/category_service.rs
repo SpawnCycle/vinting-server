@@ -1,13 +1,18 @@
 use crate::service_trait::ServiceTrait;
 use entity::category;
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityTrait, PrimaryKeyTrait,
-    QueryFilter, SelectExt,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
 };
 
-pub struct CategoryService<'a>(pub &'a DatabaseConnection);
+pub struct CategoryService<'a, C>(pub &'a C)
+where
+    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send;
 
-impl CategoryService<'_> {
+impl<C> CategoryService<'_, C>
+where
+    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send,
+{
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn get_by_name<S>(&self, name: S) -> Result<Option<category::Model>, DbErr>
@@ -59,8 +64,12 @@ impl CategoryService<'_> {
     }
 }
 
-impl ServiceTrait for CategoryService<'_> {
+impl<C> ServiceTrait for CategoryService<'_, C>
+where
+    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send,
+{
     type Entity = category::Entity;
+    type Connection = C;
 
     fn iter_filter<M>(m: M) -> bool
     where
@@ -75,7 +84,7 @@ impl ServiceTrait for CategoryService<'_> {
         Condition::all().add(category::Column::DeletedAt.is_null())
     }
 
-    fn get_db(&self) -> &DatabaseConnection {
+    fn get_db(&self) -> &C {
         self.0
     }
 
@@ -88,15 +97,15 @@ impl ServiceTrait for CategoryService<'_> {
 
     fn insert_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.insert(db)
     }
 
     fn update_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.update(db)
     }
 }

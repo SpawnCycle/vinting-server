@@ -98,7 +98,7 @@ pub async fn all(
 }
 
 async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagination, DbErr> {
-    let mut q = Product::find().service_filter::<ProductService>();
+    let mut q = Product::find().service_filter::<ProductService<DbConn>>();
 
     if let Some(s) = filters.query {
         q = q.filter(
@@ -129,7 +129,7 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
         q = q
             .left_join(Category)
             .group_by(product::Column::Id)
-            .service_filter::<CategoryService>()
+            .service_filter::<CategoryService<DbConn>>()
             .filter(category::Column::Name.is_in(c));
     }
 

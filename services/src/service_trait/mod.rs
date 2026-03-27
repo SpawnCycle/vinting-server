@@ -4,8 +4,9 @@ use entity::active_action::ActiveAction;
 pub use filter::*;
 
 use sea_orm::{
-    ActiveModelTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityTrait, PrimaryKeyTrait,
-    QueryFilter, Select, SelectExt, prelude::async_trait::async_trait,
+    ActiveModelTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    PrimaryKeyTrait, QueryFilter, Select, SelectExt, TransactionTrait,
+    prelude::async_trait::async_trait,
 };
 
 /// trait for getting tables via service
@@ -23,9 +24,10 @@ use sea_orm::{
 #[async_trait]
 pub trait ServiceTrait {
     type Entity: EntityTrait;
+    type Connection: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction>;
 
     fn default_filters() -> Condition;
-    fn get_db(&self) -> &DatabaseConnection;
+    fn get_db(&self) -> &Self::Connection;
     fn iter_filter<M>(m: M) -> bool
     where
         M: Into<<Self::Entity as EntityTrait>::Model>;
@@ -36,12 +38,12 @@ pub trait ServiceTrait {
 
     fn insert_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
+        db: &Self::Connection,
     ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send;
 
     fn update_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
+        db: &Self::Connection,
     ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send;
 
     // general use functions
@@ -117,6 +119,7 @@ pub trait ServiceTrait {
         active_model: M,
     ) -> Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>
     where
+        Self::Connection: TransactionTrait,
         M: Into<<Self::Entity as EntityTrait>::ActiveModelEx> + Send,
         <Self::Entity as EntityTrait>::ActiveModelEx: ActiveAction + Send,
     {
@@ -204,6 +207,7 @@ pub trait ServiceTrait {
 
 #[cfg(test)]
 mod tests {
+    use sea_orm::prelude::async_trait::async_trait;
     use sea_orm::{
         ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, Database, DatabaseConnection,
         DbErr, sea_query::prelude::Utc,
@@ -218,8 +222,10 @@ mod tests {
     /// In real services use `&DatabaseConnection` instead of `DatabaseConnection` directly
     struct TestService(DatabaseConnection);
 
+    #[async_trait]
     impl ServiceTrait for TestService {
         type Entity = tag::Entity;
+        type Connection = DbConn;
 
         fn iter_filter<M>(m: M) -> bool
         where
@@ -248,14 +254,16 @@ mod tests {
         fn insert_active_model_ex(
             am: <Self::Entity as EntityTrait>::ActiveModelEx,
             db: &DbConn,
-        ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
+        ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send
+        {
             am.insert(db)
         }
 
         fn update_active_model_ex(
             am: <Self::Entity as EntityTrait>::ActiveModelEx,
             db: &DbConn,
-        ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
+        ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send
+        {
             am.update(db)
         }
     }

@@ -1,13 +1,21 @@
 use crate::service_trait::ServiceTrait;
 use entity::image;
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityTrait, PrimaryKeyTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    PrimaryKeyTrait, TransactionTrait,
 };
 
-pub struct ImageService<'a>(pub &'a DatabaseConnection);
+pub struct ImageService<'a, C>(pub &'a C)
+where
+    C: TransactionTrait + ConnectionTrait + Send;
 
-impl ServiceTrait for ImageService<'_> {
+impl<C> ServiceTrait for ImageService<'_, C>
+where
+    C: ConnectionTrait + Send,
+    C: TransactionTrait<Transaction = DatabaseTransaction>,
+{
     type Entity = image::Entity;
+    type Connection = C;
 
     fn iter_filter<M>(m: M) -> bool
     where
@@ -22,7 +30,7 @@ impl ServiceTrait for ImageService<'_> {
         Condition::all().add(image::Column::DeletedAt.is_null())
     }
 
-    fn get_db(&self) -> &DatabaseConnection {
+    fn get_db(&self) -> &C {
         self.0
     }
 
@@ -35,15 +43,15 @@ impl ServiceTrait for ImageService<'_> {
 
     fn insert_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.insert(db)
     }
 
     fn update_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.update(db)
     }
 }

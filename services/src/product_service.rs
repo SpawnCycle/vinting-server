@@ -1,13 +1,21 @@
 use crate::service_trait::{ServiceFilter, ServiceTrait};
 use entity::{prelude::*, product};
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, DbConn, DbErr, EntityLoaderTrait, EntityTrait,
-    PrimaryKeyTrait, QueryFilter,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityLoaderTrait,
+    EntityTrait, PrimaryKeyTrait, QueryFilter, TransactionTrait,
 };
 
-pub struct ProductService<'a>(pub &'a DatabaseConnection);
+// TODO: if possible fix the service types now having a mandatory type
+pub struct ProductService<'a, C>(pub &'a C)
+where
+    C: ConnectionTrait + Send,
+    C: TransactionTrait<Transaction = DatabaseTransaction>;
 
-impl ProductService<'_> {
+impl<C> ProductService<'_, C>
+where
+    C: ConnectionTrait + Send,
+    C: TransactionTrait<Transaction = DatabaseTransaction>,
+{
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn load_by_id(&self, id: i32) -> Result<Option<product::ModelEx>, DbErr> {
@@ -111,8 +119,13 @@ impl ProductService<'_> {
     }
 }
 
-impl ServiceTrait for ProductService<'_> {
+impl<C> ServiceTrait for ProductService<'_, C>
+where
+    C: ConnectionTrait + Send,
+    C: TransactionTrait<Transaction = DatabaseTransaction>,
+{
     type Entity = Product;
+    type Connection = C;
 
     fn iter_filter<M>(m: M) -> bool
     where
@@ -127,7 +140,7 @@ impl ServiceTrait for ProductService<'_> {
         Condition::all().add(product::Column::DeletedAt.is_null())
     }
 
-    fn get_db(&self) -> &DatabaseConnection {
+    fn get_db(&self) -> &C {
         self.0
     }
 
@@ -140,15 +153,15 @@ impl ServiceTrait for ProductService<'_> {
 
     fn insert_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.insert(db)
     }
 
     fn update_active_model_ex(
         am: <Self::Entity as EntityTrait>::ActiveModelEx,
-        db: &DbConn,
-    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> + Send {
+        db: &C,
+    ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.update(db)
     }
 }

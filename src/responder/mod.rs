@@ -1,22 +1,18 @@
-#![allow(unused)]
+mod err_macro;
+mod fairing;
+mod json_catcher;
+
+pub use fairing::*;
+pub use json_catcher::*;
 
 use std::io;
 
 use chrono::{DateTime, Utc};
-use rocket::{
-    Responder,
-    serde::json::{self, Json},
-};
+use rocket::Responder;
 use sea_orm::DbErr;
 use serde::Serialize;
 
-macro_rules! http_err {
-    ($name:ident, $code:expr, $msg:ident) => {{
-        let err = ErrorMessage::new($code, $msg.to_string());
-        let msg = rocket::serde::json::to_string(&err).expect("The serialization shouldn't fail");
-        Self::$name(msg)
-    }};
-}
+use crate::http_err;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ErrorMessage {
@@ -26,11 +22,11 @@ pub struct ErrorMessage {
 }
 
 impl ErrorMessage {
-    pub fn new(code: u16, message: String) -> Self {
+    pub fn new(code: u16, message: impl ToString) -> Self {
         let now = Utc::now();
         Self {
             code,
-            message,
+            message: message.to_string(),
             timestamp: now,
         }
     }

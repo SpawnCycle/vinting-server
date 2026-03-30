@@ -16,6 +16,7 @@ pub struct Model {
     #[sea_orm(indexed)]
     pub product_id: i32,
 
+    pub ammount: u32,
     pub arrived_at: Option<DateTime>,
 
     #[sea_orm(belongs_to, from = "user_id", to = "id")]

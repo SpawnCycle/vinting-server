@@ -1,11 +1,11 @@
 use crate::service_trait::ServiceTrait;
 use entity::tag;
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
     PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
 };
 
-pub struct TagService<'a, C>(pub &'a C)
+pub struct TagService<'a, C = DbConn>(pub &'a C)
 where
     C: ConnectionTrait + Send,
     C: TransactionTrait<Transaction = DatabaseTransaction>;

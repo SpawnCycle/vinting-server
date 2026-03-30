@@ -1,11 +1,11 @@
 use crate::service_trait::ServiceTrait;
 use entity::category;
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
     PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
 };
 
-pub struct CategoryService<'a, C>(pub &'a C)
+pub struct CategoryService<'a, C = DbConn>(pub &'a C)
 where
     C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send;
 

@@ -1,16 +1,22 @@
-use dtos::product::get::ProductGetDto;
+use dtos::{order::get::OrderGetDto, product::get::ProductGetDto};
 use entity::{category, prelude::*, product};
-use rocket::{FromForm, State, get, http::uri::Host, serde::json::Json};
+use rocket::{
+    FromForm, State, get,
+    http::{CookieJar, uri::Host},
+    serde::json::Json,
+};
 use sea_orm::{
     ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect,
 };
 use serde::Serialize;
 use services::{
-    category_service::CategoryService, product_service::ProductService,
-    service_trait::ServiceFilter,
+    category_service::CategoryService, order_service::OrderService,
+    product_service::ProductService, service_trait::ServiceFilter,
 };
 
-use crate::{constants::construct_host, responder::Responder, routes::id_model::IdModel};
+use crate::{
+    constants::construct_host, jwt::JwtClaims, responder::Responder, routes::id_model::IdModel,
+};
 
 #[derive(Debug, Clone, FromForm)]
 pub struct ProductFilter {
@@ -129,7 +135,7 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
         q = q
             .left_join(Category)
             .group_by(product::Column::Id)
-            .service_filter::<CategoryService<DbConn>>()
+            .service_filter::<CategoryService>()
             .filter(category::Column::Name.is_in(c));
     }
 
@@ -154,4 +160,27 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
         items: page.number_of_items,
         pages: page.number_of_pages,
     })
+}
+
+#[get("/<id>/order")]
+pub async fn product_order(
+    id: i32,
+    claims: JwtClaims,
+    jar: &CookieJar<'_>,
+    db: &State<DbConn>,
+) -> Result<Json<OrderGetDto>, Responder> {
+    let db = db.inner();
+    let service = OrderService(db);
+    if !claims.exists_or_remove(db, jar).await? {
+        return Err(Responder::unauhorized(
+            "You must be logged in to have orders",
+        ));
+    }
+
+    let order = service
+        .get_by_user(claims.uid, id)
+        .await?
+        .ok_or(Responder::not_found("You did not order this product"))?;
+
+    Ok(Json(order.into()))
 }

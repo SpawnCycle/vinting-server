@@ -1,12 +1,12 @@
 use crate::service_trait::{ServiceFilter, ServiceTrait};
 use entity::{prelude::*, product};
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityLoaderTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityLoaderTrait,
     EntityTrait, PrimaryKeyTrait, QueryFilter, TransactionTrait,
 };
 
 // TODO: if possible fix the service types now having a mandatory type
-pub struct ProductService<'a, C>(pub &'a C)
+pub struct ProductService<'a, C = DbConn>(pub &'a C)
 where
     C: ConnectionTrait + Send,
     C: TransactionTrait<Transaction = DatabaseTransaction>;

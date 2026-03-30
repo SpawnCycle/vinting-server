@@ -1,11 +1,11 @@
 use crate::service_trait::ServiceTrait;
 use entity::user;
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
     PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
 };
 
-pub struct UserService<'a, C>(pub &'a C)
+pub struct UserService<'a, C = DbConn>(pub &'a C)
 where
     C: ConnectionTrait + Send,
     C: TransactionTrait<Transaction = DatabaseTransaction>;

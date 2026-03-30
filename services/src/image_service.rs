@@ -1,11 +1,11 @@
 use crate::service_trait::ServiceTrait;
 use entity::image;
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
     PrimaryKeyTrait, TransactionTrait,
 };
 
-pub struct ImageService<'a, C>(pub &'a C)
+pub struct ImageService<'a, C = DbConn>(pub &'a C)
 where
     C: TransactionTrait + ConnectionTrait + Send;
 

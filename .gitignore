@@ -13,3 +13,4 @@
 
 # for some reason git likes to sneak it in from time to time
 .env
+.env.production

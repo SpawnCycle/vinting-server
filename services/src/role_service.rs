@@ -1,11 +1,11 @@
 use crate::service_trait::ServiceTrait;
 use entity::role;
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
     PrimaryKeyTrait, TransactionTrait,
 };
 
-pub struct RoleService<'a, C>(pub &'a C)
+pub struct RoleService<'a, C = DbConn>(pub &'a C)
 where
     C: ConnectionTrait + Send,
     C: TransactionTrait<Transaction = DatabaseTransaction>;

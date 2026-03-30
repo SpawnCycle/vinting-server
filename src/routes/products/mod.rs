@@ -1,3 +1,5 @@
+//! TODO: delete order
+
 mod get;
 mod post;
 mod put;
@@ -36,7 +38,15 @@ impl Fairing for ProductFairing {
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
         let r = r.mount(
             "/api/products",
-            routes![get::all, get::one, post::one, post::form, put::one],
+            routes![
+                get::all,
+                get::one,
+                get::product_order,
+                post::one,
+                post::form,
+                post::order_product,
+                put::one,
+            ],
         );
 
         Ok(r)

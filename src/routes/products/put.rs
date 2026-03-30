@@ -1,8 +1,11 @@
-use dtos::product::put::ProductPutDto;
-use entity::{prelude::*, product_category, product_image, product_tag};
+use dtos::{order::put::OrderPutDto, product::put::ProductPutDto};
+use entity::{order, prelude::*, product_category, product_image, product_tag};
+use migrations::constants::ADMIN_ROLE;
 use rocket::{State, http::CookieJar, put, response::status::NoContent, serde::json::Json};
 use sea_orm::{ColumnTrait, DbConn, EntityTrait, QueryFilter, TransactionTrait};
-use services::{product_service::ProductService, service_trait::ServiceTrait};
+use services::{
+    order_service::OrderService, product_service::ProductService, service_trait::ServiceTrait,
+};
 
 use crate::{
     jwt::JwtClaims, responder::Responder, routes::products::product_put_dto_to_am_with_associations,

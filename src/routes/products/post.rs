@@ -1,7 +1,10 @@
-use dtos::product::{get::ProductGetDto, post::ProductPostDto};
+use dtos::{
+    order::{get::OrderGetDto, post::OrderPostDto},
+    product::{get::ProductGetDto, post::ProductPostDto},
+};
 use entity::{
     active_action::ActiveAction,
-    image,
+    image, order,
     product::{self, ProductCondition, ProductSex},
     tag,
 };
@@ -17,8 +20,8 @@ use rocket::{
 };
 use sea_orm::{DbConn, IntoActiveModel, TransactionTrait};
 use services::{
-    category_service::CategoryService, product_service::ProductService,
-    service_trait::ServiceTrait, tag_service::TagService,
+    category_service::CategoryService, order_service::OrderService,
+    product_service::ProductService, service_trait::ServiceTrait, tag_service::TagService,
 };
 
 use crate::{
@@ -68,8 +71,12 @@ pub async fn form(
     let trx = db.begin().await?;
     let db = &trx;
     let host = construct_host(host);
-    claims.exists_or_remove(db, jar).await?;
     let mut data = data.into_inner();
+    if !claims.exists_or_remove(db, jar).await? {
+        return Err(Responder::unauhorized(
+            "Your token is not valid, it has been removed",
+        ));
+    }
 
     let c_service = CategoryService(db);
     let p_service = ProductService(db);
@@ -160,7 +167,11 @@ pub async fn one(
     let trx = db.begin().await?;
     let db = &trx;
     let service = ProductService(db);
-    claims.exists_or_remove(db, jar).await?;
+    if !claims.exists_or_remove(db, jar).await? {
+        return Err(Responder::unauhorized(
+            "Your token is not valid, it has been removed",
+        ));
+    }
 
     let model = service
         .insert(product_post_dto_to_am_with_associations(&data, claims.uid, db).await?)
@@ -177,4 +188,35 @@ pub async fn one(
     trx.commit().await?;
 
     Ok(Created::new(format!("{host}/api/products/{id}")).body(Json(dto)))
+}
+
+#[post("/<id>/order", format = "application/json", data = "<data>")]
+pub async fn order_product(
+    id: i32,
+    host: &Host<'_>,
+    jar: &CookieJar<'_>,
+    claims: JwtClaims,
+    db: &State<DbConn>,
+    data: Json<OrderPostDto>,
+) -> Result<Created<Json<OrderGetDto>>, Responder> {
+    let trx = db.begin().await?;
+    let db = &trx;
+    let service = OrderService(db);
+
+    if !claims.exists_or_remove(db, jar).await? {
+        return Err(Responder::unauhorized(
+            "Your token is not valid, it has been removed",
+        ));
+    }
+
+    let am = order::ActiveModelEx::from(data.into_inner())
+        .set_user_id(claims.uid)
+        .set_product_id(id);
+
+    let model = service.insert(am).await?;
+
+    trx.commit().await?;
+
+    // TODO: Change the created link
+    Ok(Created::new(format!("{host}/api/products/{id}")).body(Json(model.into())))
 }

@@ -1,11 +1,40 @@
 use crate::service_trait::ServiceTrait;
-use entity::order;
+use entity::{order, prelude::*};
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
-    PrimaryKeyTrait, TransactionTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
+    PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
 };
 
-pub struct OrderService<'a, C: TransactionTrait + ConnectionTrait + Send>(pub &'a C);
+pub struct OrderService<'a, C = DbConn>(pub &'a C)
+where
+    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send;
+
+impl<C> OrderService<'_, C>
+where
+    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send,
+{
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn exists_from_user(&self, uid: i32, pid: i32) -> Result<bool, DbErr> {
+        Order::find()
+            .filter(Self::default_filters())
+            .filter(order::Column::UserId.eq(uid))
+            .filter(order::Column::ProductId.eq(pid))
+            .exists(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn get_by_user(&self, uid: i32, pid: i32) -> Result<Option<order::Model>, DbErr> {
+        Order::find()
+            .filter(Self::default_filters())
+            .filter(order::Column::UserId.eq(uid))
+            .filter(order::Column::ProductId.eq(pid))
+            .one(self.get_db())
+            .await
+    }
+}
 
 impl<C> ServiceTrait for OrderService<'_, C>
 where

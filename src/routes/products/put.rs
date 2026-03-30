@@ -1,11 +1,7 @@
-use dtos::{order::put::OrderPutDto, product::put::ProductPutDto};
-use entity::{order, prelude::*, product_category, product_image, product_tag};
-use migrations::constants::ADMIN_ROLE;
+use dtos::product::put::ProductPutDto;
 use rocket::{State, http::CookieJar, put, response::status::NoContent, serde::json::Json};
-use sea_orm::{ColumnTrait, DbConn, EntityTrait, QueryFilter, TransactionTrait};
-use services::{
-    order_service::OrderService, product_service::ProductService, service_trait::ServiceTrait,
-};
+use sea_orm::{DbConn, TransactionTrait};
+use services::{product_service::ProductService, service_trait::ServiceTrait};
 
 use crate::{
     jwt::JwtClaims, responder::Responder, routes::products::product_put_dto_to_am_with_associations,
@@ -46,24 +42,6 @@ pub async fn one(
     let product = product_put_dto_to_am_with_associations(&data, claims.uid, db).await?;
 
     let _ = service.update(product).await?;
-
-    let _ = ProductCategory::delete_many()
-        .filter(product_category::Column::ProductId.eq(id))
-        .filter(product_category::Column::CategoryId.is_not_in(data.data.categories))
-        .exec(db)
-        .await?;
-
-    let _ = ProductTag::delete_many()
-        .filter(product_tag::Column::ProductId.eq(id))
-        .filter(product_tag::Column::TagId.is_not_in(data.data.tags))
-        .exec(db)
-        .await?;
-
-    let _ = ProductImage::delete_many()
-        .filter(product_image::Column::ProductId.eq(id))
-        .filter(product_image::Column::ImageId.is_not_in(data.data.images))
-        .exec(db)
-        .await?;
 
     trx.commit().await?;
 

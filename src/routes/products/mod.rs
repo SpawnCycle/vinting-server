@@ -64,6 +64,9 @@ where
     C: TransactionTrait<Transaction = DatabaseTransaction>,
 {
     let mut am = dto.clone().into_active_model(uid);
+    am.categories.replace_all([]);
+    am.tags.replace_all([]);
+    am.images.replace_all([]);
     let c_service = CategoryService(db);
     let t_service = TagService(db);
 

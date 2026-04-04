@@ -1,9 +1,9 @@
 use sea_orm::prelude::*;
 
 use entity::order;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderPutDto {
     pub id: i32,
     pub arrived_at: Option<DateTime>,

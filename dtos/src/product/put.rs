@@ -1,7 +1,7 @@
 use entity::product;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductPutDto {
     pub id: i32,
     pub has_stock: bool,

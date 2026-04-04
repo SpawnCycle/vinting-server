@@ -1,8 +1,8 @@
 use entity::product::{self, ProductCondition, ProductSex};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// DOESN'T SET THE FOREIGN STUFF
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductPostDto {
     pub name: String,
     pub description: String,

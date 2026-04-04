@@ -1,10 +1,10 @@
 use argon2::{Argon2, PasswordHasher};
 use entity::user;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::email_string::EmailString;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserPostDto {
     pub name: String,
     pub email: EmailString,

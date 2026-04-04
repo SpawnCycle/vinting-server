@@ -1,8 +1,8 @@
 use entity::user;
 use sea_orm::prelude::DateTime;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WhoamiDto {
     pub id: i32,
     pub created_at: DateTime,

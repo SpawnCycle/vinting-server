@@ -17,3 +17,58 @@ pub async fn one(id: i32, db: &State<DbConn>) -> Result<NoContent, Responder> {
 
     Ok(NoContent)
 }
+
+#[cfg(test)]
+mod tests {
+    use rocket::local::asynchronous::Client;
+
+    use super::*;
+    use crate::testing;
+
+    #[tokio::test]
+    async fn tags_delete_tracked() -> anyhow::Result<()> {
+        let db = testing::db().await?;
+        testing::tag::seed_db(&db).await?;
+        let r = testing::rocket(db).await?;
+
+        let client = Client::tracked(r).await?;
+
+        let req = client.delete("/api/tags/1");
+        let res = req.dispatch().await;
+
+        assert_eq!(
+            res.status().code,
+            204,
+            "This should delete the tag succesfully"
+        );
+
+        let req = client.get("/api/tags/1");
+        let res = req.dispatch().await;
+
+        assert_eq!(
+            res.status().code,
+            404,
+            "The tag should be inaccessible after deletion"
+        );
+
+        let req = client.delete("/api/tags/1");
+        let res = req.dispatch().await;
+
+        assert_eq!(res.status().code, 404, "The tag shouldn't be deletable");
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn tags_delete_func() -> anyhow::Result<()> {
+        let db = testing::db().await?;
+        let db = State::from(&db);
+        testing::tag::seed_db(db).await?;
+
+        let tags = one(1, db).await;
+
+        assert!(tags.is_ok(), "The tag should be deleted succesfully");
+
+        Ok(())
+    }
+}

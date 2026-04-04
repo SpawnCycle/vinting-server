@@ -1,7 +1,7 @@
 //! variant of <https://stackoverflow.com/questions/74482350/adding-length-limit-when-deserializing-a-string-a-vec-or-an-array>
 
 use regex::Regex;
-use serde::de;
+use serde::{de, ser};
 use std::{ops::Deref, sync::LazyLock};
 
 #[derive(Debug, Clone)]
@@ -37,6 +37,15 @@ impl<'de> de::Deserialize<'de> for EmailString {
                 Err(de::Error::custom("The string is not an email string"))
             }
         })
+    }
+}
+
+impl ser::Serialize for EmailString {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        <String as ser::Serialize>::serialize(&self.0, serializer)
     }
 }
 

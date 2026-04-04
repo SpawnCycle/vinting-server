@@ -1,7 +1,7 @@
 use entity::order;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderPostDto {
     pub ammount: u32,
 }

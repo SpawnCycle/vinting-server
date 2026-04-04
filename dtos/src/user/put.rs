@@ -1,7 +1,7 @@
 use entity::user;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserPutDto {
     pub id: i32,
     #[serde(flatten)]

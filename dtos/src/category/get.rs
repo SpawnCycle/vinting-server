@@ -1,10 +1,10 @@
 use entity::category;
 use sea_orm::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::from_models;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CategoryGetDto {
     pub id: i32,
     pub created_at: DateTime,

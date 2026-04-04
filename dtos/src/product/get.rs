@@ -1,6 +1,6 @@
 use entity::product::{self, ProductCondition, ProductSex};
 use sea_orm::{DbConn, prelude::DateTime};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use services::{
     category_service::CategoryService, image_service::ImageService, service_trait::ServiceTrait,
     tag_service::TagService,
@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Can only convert from `ModelEx` with `user`, `categories`, `tags`, and `images` loaded
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductGetDto {
     pub id: i32,
     pub created_at: DateTime,

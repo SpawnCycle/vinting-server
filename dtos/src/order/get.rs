@@ -1,10 +1,10 @@
 use entity::order;
 use sea_orm::prelude::DateTime;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::from_models;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderGetDto {
     pub id: i32,
     pub created_at: DateTime,

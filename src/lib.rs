@@ -14,3 +14,7 @@ pub mod jwt;
 pub mod responder;
 pub mod routable_file_server;
 pub mod routes;
+
+/// common functions required for testing
+#[cfg(test)]
+pub mod testing;

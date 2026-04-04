@@ -5,7 +5,7 @@ mod json_catcher;
 pub use fairing::*;
 pub use json_catcher::*;
 
-use std::io;
+use std::{error::Error, fmt::Display, io};
 
 use chrono::{DateTime, Utc};
 use rocket::Responder;
@@ -45,6 +45,20 @@ pub enum Responder {
     #[response(status = 401)]
     Unauhorized(String),
 }
+
+impl Display for Responder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Responder::ServerError(msg)
+            | Responder::Conflict(msg)
+            | Responder::NotFound(msg)
+            | Responder::BadRequest(msg)
+            | Responder::Unauhorized(msg) => write!(f, "{msg}"),
+        }
+    }
+}
+
+impl Error for Responder {}
 
 impl Responder {
     pub fn bad_request(msg: impl ToString) -> Self {

@@ -36,7 +36,7 @@ pub mod active_action {
                 }
                 fn deleting(self) -> Self {
                     let now = sea_orm::sea_query::prelude::Utc::now().naive_local();
-                    self.modifying().set_modified_at(now)
+                    self.modifying().set_deleted_at(now)
                 }
             }
         };

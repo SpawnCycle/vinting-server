@@ -108,11 +108,11 @@ async fn compute_sha(image: &mut TempFile<'_>) -> Result<Vec<u8>, io::Error> {
 
 #[cfg(test)]
 mod tests {
-    use sea_orm::Database;
+    use crate::testing;
 
     #[tokio::test]
     async fn ignites_successfully() -> anyhow::Result<()> {
-        let db = Database::connect("sqlite::memory:").await?;
+        let db = testing::db().await?;
         let r = rocket::build().manage(db).attach(super::AllRouteFairing);
 
         r.ignite().await?;

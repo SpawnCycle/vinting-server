@@ -19,7 +19,10 @@ use services::{
 };
 use thiserror::Error;
 
-use crate::constants::{JWT_KEY, get_jwt_key};
+use crate::{
+    constants::{JWT_KEY, get_jwt_key},
+    responder::Responder,
+};
 
 /// This is the struct used inside the JWT
 /// It implements FromRequest, so you can check if a user is signed in with the following:
@@ -95,6 +98,23 @@ impl JwtClaims {
             self.remove_from(jar);
         }
         Ok(exists)
+    }
+
+    pub async fn exists_or_unauthorized<C>(
+        &self,
+        db: &C,
+        jar: &CookieJar<'_>,
+    ) -> Result<(), Responder>
+    where
+        C: ConnectionTrait + Send,
+    {
+        if !self.exists_or_remove(db, jar).await? {
+            return Err(Responder::unauhorized(
+                "Your token is not valid, it has been removed",
+            ));
+        }
+
+        Ok(())
     }
 
     pub async fn exists<C>(&self, db: &C) -> Result<bool, DbErr>

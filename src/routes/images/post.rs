@@ -30,11 +30,7 @@ pub async fn upload(
     mut form: Form<ImageForm<'_>>,
 ) -> Result<Json<ImageGetDto>, Responder> {
     let db = db.inner();
-    if !claims.exists_or_remove(db, jar).await? {
-        return Err(Responder::unauhorized(
-            "Your token is incorrect, it has been removed",
-        ));
-    }
+    claims.exists_or_unauthorized(db, jar).await?;
 
     let uri = save_image(&mut form.image).await?;
     let service = ImageService(db);

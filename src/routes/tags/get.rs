@@ -23,7 +23,7 @@ pub async fn all(db: &State<DbConn>) -> Result<Json<Vec<TagGetDto>>, Responder> 
     let db = db.inner();
     let service = TagService(db);
 
-    let tags = service.get_all_mutating(TagGetDto::from).await?;
+    let tags = service.get_all_mapping(TagGetDto::from).await?;
 
     Ok(Json(tags))
 }

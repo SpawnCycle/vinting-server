@@ -12,7 +12,7 @@ pub async fn all(host: &Host<'_>, db: &State<DbConn>) -> Result<Json<Vec<ImageGe
     let service = ImageService(db);
 
     let images = service
-        .get_all_mutating(|m| ImageGetDto::from_model_with_host(m, &host))
+        .get_all_mapping(|m| ImageGetDto::from_model_with_host(m, &host))
         .await?;
 
     Ok(Json(images))

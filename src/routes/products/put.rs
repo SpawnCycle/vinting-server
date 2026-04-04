@@ -19,11 +19,7 @@ pub async fn one(
     let db = &trx;
     let service = ProductService(db);
     let data = data.into_inner();
-    if !claims.exists_or_remove(db, jar).await? {
-        return Err(Responder::unauhorized(
-            "Your token is not valid, it has been removed",
-        ));
-    }
+    claims.exists_or_unauthorized(db, jar).await?;
 
     if id != data.id {
         return Err(Responder::bad_request(

@@ -1,5 +1,4 @@
-//! TODO: delete order
-
+mod delete;
 mod get;
 mod post;
 mod put;
@@ -41,11 +40,11 @@ impl Fairing for ProductFairing {
             routes![
                 get::all,
                 get::one,
-                get::product_order,
                 post::one,
                 post::form,
                 post::order_product,
                 put::one,
+                delete::one,
             ],
         );
 

@@ -22,7 +22,7 @@ pub async fn whoami(
     jar: &CookieJar<'_>,
 ) -> Result<Json<WhoamiDto>, Responder> {
     let db = db.inner();
-    claims.exists_or_remove(db, jar).await?;
+    claims.exists_or_unauthorized(db, jar).await?;
     let user = claims
         .load(db, |q| q.with(Role))
         .await?
@@ -40,7 +40,7 @@ pub async fn whoami(
 pub async fn all(db: &State<DbConn>) -> Result<Json<Vec<UserGetDto>>, Responder> {
     let db = db.inner();
     let service = UserService(db);
-    Ok(Json(service.get_all_mutating(UserGetDto::from).await?))
+    Ok(Json(service.get_all_mapping(UserGetDto::from).await?))
 }
 
 #[get("/<id>")]

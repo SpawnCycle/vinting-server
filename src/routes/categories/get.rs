@@ -22,7 +22,7 @@ pub async fn all(db: &State<DbConn>) -> Result<Json<Vec<CategoryGetDto>>, Respon
     let db = db.inner();
     let service = CategoryService(db);
 
-    let categories = service.get_all_mutating(CategoryGetDto::from).await?;
+    let categories = service.get_all_mapping(CategoryGetDto::from).await?;
 
     Ok(Json(categories))
 }

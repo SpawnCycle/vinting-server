@@ -12,6 +12,7 @@
 mod categories;
 mod id_model;
 mod images;
+mod orders;
 mod products;
 mod tags;
 mod users;
@@ -32,8 +33,8 @@ use tokio::{fs::try_exists, io::AsyncReadExt};
 use crate::{
     constants::USE_SHA,
     routes::{
-        categories::CategoriesFairing, images::ImagesFairing, products::ProductFairing,
-        tags::TagsFairing, users::UsersFairing,
+        categories::CategoriesFairing, images::ImagesFairing, orders::OrderFairing,
+        products::ProductFairing, tags::TagsFairing, users::UsersFairing,
     },
 };
 
@@ -54,7 +55,8 @@ impl Fairing for AllRouteFairing {
             .attach(CategoriesFairing)
             .attach(TagsFairing)
             .attach(ImagesFairing)
-            .attach(ProductFairing);
+            .attach(ProductFairing)
+            .attach(OrderFairing);
 
         Ok(r)
     }

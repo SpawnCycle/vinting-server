@@ -77,7 +77,7 @@ pub trait ServiceTrait {
 
     /// returns all of the rows from the table that `Self::Entity` works with,
     /// and maps the elements using the passed in muatation function
-    async fn get_all_mutating<T, F>(&self, f: F) -> Result<Vec<T>, DbErr>
+    async fn get_all_mapping<T, F>(&self, f: F) -> Result<Vec<T>, DbErr>
     where
         F: FnMut(<Self::Entity as EntityTrait>::Model) -> T + Send,
     {

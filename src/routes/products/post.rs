@@ -72,11 +72,7 @@ pub async fn form(
     let db = &trx;
     let host = construct_host(host);
     let mut data = data.into_inner();
-    if !claims.exists_or_remove(db, jar).await? {
-        return Err(Responder::unauhorized(
-            "Your token is not valid, it has been removed",
-        ));
-    }
+    claims.exists_or_unauthorized(db, jar).await?;
 
     let c_service = CategoryService(db);
     let p_service = ProductService(db);
@@ -164,14 +160,11 @@ pub async fn one(
     db: &State<DbConn>,
     data: Json<ProductPostDto>,
 ) -> Result<Created<Json<ProductGetDto>>, Responder> {
+    let host = construct_host(host);
     let trx = db.begin().await?;
     let db = &trx;
     let service = ProductService(db);
-    if !claims.exists_or_remove(db, jar).await? {
-        return Err(Responder::unauhorized(
-            "Your token is not valid, it has been removed",
-        ));
-    }
+    claims.exists_or_unauthorized(db, jar).await?;
 
     let model = service
         .insert(product_post_dto_to_am_with_associations(&data, claims.uid, db).await?)
@@ -180,7 +173,6 @@ pub async fn one(
         .load_by_id(model.id)
         .await?
         .expect("The model was just created, it should exist");
-    let host = construct_host(host);
     let id = model.id;
     let dto = ProductGetDto::from_model_with_host(model, &host)
         .ok_or(Responder::server_error("Could not construct the dto"))?;
@@ -199,24 +191,20 @@ pub async fn order_product(
     db: &State<DbConn>,
     data: Json<OrderPostDto>,
 ) -> Result<Created<Json<OrderGetDto>>, Responder> {
+    let host = construct_host(host);
     let trx = db.begin().await?;
     let db = &trx;
     let service = OrderService(db);
-
-    if !claims.exists_or_remove(db, jar).await? {
-        return Err(Responder::unauhorized(
-            "Your token is not valid, it has been removed",
-        ));
-    }
+    claims.exists_or_unauthorized(db, jar).await?;
 
     let am = order::ActiveModelEx::from(data.into_inner())
         .set_user_id(claims.uid)
         .set_product_id(id);
 
     let model = service.insert(am).await?;
+    let id = model.id;
 
     trx.commit().await?;
 
-    // TODO: Change the created link
-    Ok(Created::new(format!("{host}/api/products/{id}")).body(Json(model.into())))
+    Ok(Created::new(format!("{host}/api/orders/{id}")).body(Json(model.into())))
 }

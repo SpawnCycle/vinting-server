@@ -9,9 +9,17 @@
   Requires: Logged in
   Accepts: `ProductPostDto` | `ProductForm`
   Returns: `ProductGetDto`
+- POST /api/products/{id}/order:
+  Requires: Logged in
+  Accepts: `OrderPostDto`
+  Returns: `OrderGetDto`
 - PUT /api/products/{id}:
   Requires: Logged in and the product is yours
   Accepts: `ProductPutDto`
+  Returns: NoContent
+- DELETE /api/products/{id}:
+  Requires: Logged in and the product is yours || Admin role
+  Accepts: NoContent
   Returns: NoContent
 - GET /api/products/{id}
   Accepts: NoContent
@@ -27,6 +35,27 @@
   - categories: `string[]` (optional)
   - page: `number` (default: 1, first page has the index of 1)
   - page_size: `number` (default: 10)
+
+### Orders
+
+- GET /api/orders/:
+  Details: Returns all of the orders for the logged in user
+  Requires: Logged in
+  Accepts: NoContent
+  Returns: `OrderGetDto[]`
+- GET /api/orders/{id}:
+  Requires: Logged in | Admin role
+  Accepts: NoContent
+  Returns: `OrderGetDto[]`
+- GET /api/orders/all:
+  Details: Returns all of the orders regardless of who it belongs to
+  Requires: Admin role
+  Accepts: NoContent
+  Returns: `OrderGetDto[]`
+- DELETE /api/orders/{id}:
+  Requires: Admin role
+  Accepts: NoContent
+  Returns: NoContent
 
 ### Users
 
@@ -261,11 +290,34 @@ ProductGetDto:
     {
       "id": 1,
       "created_at": "2000-01-05",
-      "modified_at": "2000-0l-05",
+      "modified_at": "2000-01-05",
       "name": "string"
     }
   ],
   "images": ["string"]
+}
+```
+
+### Orders
+
+OrderPostDto
+
+```json
+{
+  "ammount": 1
+}
+```
+
+OrderGetDto
+
+```json
+{
+  "id": 1,
+  "created_at": "2000-01-05",
+  "modified_at": "2000-01-05",
+  "user_id": 1,
+  "ammount": 1,
+  "arrived_at": "2000-01-05 | null"
 }
 ```
 

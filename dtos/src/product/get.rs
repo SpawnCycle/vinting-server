@@ -26,6 +26,7 @@ pub struct ProductGetDto {
     pub brand: Option<String>,
     pub color: String,
 
+    pub available_stock: u32,
     pub has_stock: bool,
 
     pub condition: ProductCondition,
@@ -48,6 +49,7 @@ impl ProductGetDto {
         }
 
         let user = m.user.into_option()?;
+        let available = m.overall_stock.saturating_sub(m.sold_stock);
 
         Some(Self {
             id: m.id,
@@ -56,7 +58,8 @@ impl ProductGetDto {
 
             name: m.name,
             description: m.description,
-            has_stock: m.has_stock,
+            available_stock: available,
+            has_stock: available > 0,
 
             price: m.price,
             size: m.size,

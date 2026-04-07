@@ -35,6 +35,10 @@ pub async fn one(
         return Err(Responder::unauhorized("You can't modify others' products"));
     }
 
+    if product.overall_stock < data.data.stock {
+        return Err(Responder::bad_request("You can't reduce your stock"));
+    }
+
     let product = product_put_dto_to_am_with_associations(&data, claims.uid, db).await?;
 
     let _ = service.update(product).await?;

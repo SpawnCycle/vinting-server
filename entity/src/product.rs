@@ -22,7 +22,8 @@ pub struct Model {
 
     pub price: u32,
 
-    pub has_stock: bool,
+    pub overall_stock: u32,
+    pub sold_stock: u32,
 
     pub size: String,
     pub color: String,

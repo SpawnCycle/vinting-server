@@ -14,6 +14,8 @@ pub struct ProductPostDto {
     pub condition: ProductCondition,
     pub sex: ProductSex,
 
+    pub stock: u32,
+
     /// List of category ids
     pub categories: Vec<i32>,
     /// List of image ids
@@ -42,6 +44,7 @@ impl From<ProductPostDto> for product::ActiveModelEx {
             .set_color(d.color)
             .set_brand(d.brand)
             .set_description(d.description)
-            .set_has_stock(true)
+            .set_overall_stock(d.stock)
+            .set_sold_stock(0u32)
     }
 }

@@ -55,6 +55,7 @@ pub struct ProductForm<'a> {
     size: String,
     color: String,
     price: u32,
+    stock: u32,
     #[field(validate = with(valid_file_types, "One of the files has an unsupported file type"))]
     #[field(validate = with(valid_file_sizes, "One of the files is too large"))]
     images: Vec<TempFile<'a>>,
@@ -89,8 +90,9 @@ pub async fn form(
 
     let mut am = product::ActiveModelEx::new()
         .set_seller_id(user.id)
-        .set_has_stock(true)
         .set_name(data.title)
+        .set_overall_stock(data.stock)
+        .set_sold_stock(0u32)
         .set_description(data.description)
         .set_brand(data.brand)
         .set_condition(condition)
@@ -194,17 +196,45 @@ pub async fn order_product(
     let host = construct_host(host);
     let trx = db.begin().await?;
     let db = &trx;
-    let service = OrderService(db);
+    let o_service = OrderService(db);
+    let p_service = ProductService(db);
     claims.exists_or_unauthorized(db, jar).await?;
+
+    let product = p_service.get_by_id(id).await?.ok_or(Responder::not_found(
+        "There is no product with the given id",
+    ))?;
+
+    let available_stock = product.overall_stock.saturating_sub(product.sold_stock);
+    let sold = product.sold_stock;
+    let ammount = data.ammount;
+
+    if available_stock < ammount {
+        return Err(Responder::bad_request(format!(
+            "You can't buy {} of a product which has {} available items",
+            ammount, available_stock
+        )));
+    }
 
     let am = order::ActiveModelEx::from(data.into_inner())
         .set_user_id(claims.uid)
         .set_product_id(id);
 
-    let model = service.insert(am).await?;
-    let id = model.id;
+    let order = o_service.insert(am).await?;
+    let order = o_service
+        .load_by_id(order.id)
+        .await?
+        .expect("The model was just inserted");
+    let _ = product
+        .into_active_model()
+        .into_ex()
+        .set_sold_stock(sold + ammount)
+        .update(db)
+        .await?;
+    let id = order.id;
 
     trx.commit().await?;
 
-    Ok(Created::new(format!("{host}/api/orders/{id}")).body(Json(model.into())))
+    Ok(Created::new(format!("{host}/api/orders/{id}")).body(Json(
+        OrderGetDto::with_product(order, &host).expect("The model should be properly loaded"),
+    )))
 }

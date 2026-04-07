@@ -14,7 +14,7 @@
   Accepts: `OrderPostDto`
   Returns: `OrderGetDto`
 - PUT /api/products/{id}:
-  Requires: Logged in and the product is yours
+  Requires: Logged in and the product is yours && the new stock is higher
   Accepts: `ProductPutDto`
   Returns: NoContent
 - DELETE /api/products/{id}:
@@ -153,6 +153,7 @@ ProductForm:
 - size: string
 - color: string
 - price: number
+- stock: number
 - images: file[] (Accepts the same file types and the image form)
 
 ## Types
@@ -183,6 +184,7 @@ ProductPostDto:
   "brand": "string | null",
   "condition": "New | Like new | Used | Heavily used",
   "sex": "Male | Female | Unisex",
+  "stock": 1,
   "categories": [1],
   "tags": [1],
   "images": [1]
@@ -202,6 +204,7 @@ ProductPutDto:
   "brand": "string | null",
   "condition": "New | Like new | Used | Heavily used",
   "sex": "Male | Female | Unisex",
+  "stock": 1,
   "categories": [1],
   "tags": [1],
   "images": [1]
@@ -226,6 +229,7 @@ ProductPagination:
       "brand": "string | null",
       "condition": "New | Like new | Used | Heavily used",
       "sex": "Male | Female | Unisex",
+      "available_stock": 5,
       "has_stock": true,
       "user": {
         "id": 1,
@@ -270,6 +274,7 @@ ProductGetDto:
   "brand": "string | null",
   "condition": "New | Like new | Used | Heavily used",
   "sex": "Male | Female | Unisex",
+  "available_stock": 5,
   "has_stock": true,
   "user": {
     "id": 1,
@@ -317,7 +322,45 @@ OrderGetDto
   "modified_at": "2000-01-05",
   "user_id": 1,
   "ammount": 1,
-  "arrived_at": "2000-01-05 | null"
+  "arrived_at": "2000-01-05 | null",
+  "product": {
+    "id": 1,
+    "created_at": "2000-01-01",
+    "modified_at": "2000-01-01",
+    "name": "string",
+    "description": "string",
+    "price": 1,
+    "size": "string",
+    "brand": "string | null",
+    "condition": "New | Like new | Used | Heavily used",
+    "sex": "Male | Female | Unisex",
+    "available_stock": 5,
+    "has_stock": true,
+    "user": {
+      "id": 1,
+      "created_at": "2000-01-05",
+      "modified_at": "2000-01-05",
+      "name": "string",
+      "email": "email@email.com"
+    },
+    "categories": [
+      {
+        "id": 1,
+        "created_at": "2000-01-05",
+        "modified_at": "2000-01-05",
+        "name": "string"
+      }
+    ],
+    "tags": [
+      {
+        "id": 1,
+        "created_at": "2000-01-05",
+        "modified_at": "2000-01-05",
+        "name": "string"
+      }
+    ],
+    "images": ["string"]
+  }
 }
 ```
 

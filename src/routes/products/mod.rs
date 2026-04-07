@@ -116,8 +116,7 @@ where
 {
     Ok(product_post_dto_to_am_with_associations(&dto.data, uid, db)
         .await?
-        .set_id(dto.id)
-        .set_has_stock(dto.has_stock))
+        .set_id(dto.id))
 }
 
 #[cfg(test)]

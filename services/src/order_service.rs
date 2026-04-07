@@ -1,13 +1,21 @@
 use crate::service_trait::ServiceTrait;
 use entity::{order, prelude::*};
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
-    PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
+    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityLoaderTrait,
+    EntityTrait, PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
 };
 
 pub struct OrderService<'a, C = DbConn>(pub &'a C)
 where
     C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send;
+
+fn load_order() -> order::EntityLoader {
+    Order::load()
+        .with((Product, User))
+        .with((Product, Category))
+        .with((Product, Tag))
+        .with((Product, Image))
+}
 
 impl<C> OrderService<'_, C>
 where
@@ -15,23 +23,62 @@ where
 {
     /// # Errors
     /// Returns the error produced by sea-orm
-    pub async fn exists_from_user(&self, uid: i32, pid: i32) -> Result<bool, DbErr> {
-        Order::find()
-            .filter(Self::default_filters())
+    pub async fn load_all(&self) -> Result<Vec<order::ModelEx>, DbErr> {
+        load_order().all(self.get_db()).await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_all_mapping<T, F>(&self, f: F) -> Result<Vec<T>, DbErr>
+    where
+        F: FnMut(order::ModelEx) -> T,
+    {
+        Ok(load_order()
+            .all(self.get_db())
+            .await?
+            .into_iter()
+            .map(f)
+            .collect())
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_from_user(&self, uid: i32) -> Result<Vec<order::ModelEx>, DbErr> {
+        load_order()
             .filter(order::Column::UserId.eq(uid))
-            .filter(order::Column::ProductId.eq(pid))
-            .exists(self.get_db())
+            .all(self.get_db())
             .await
     }
 
     /// # Errors
     /// Returns the error produced by sea-orm
-    pub async fn get_by_user(&self, uid: i32, pid: i32) -> Result<Option<order::Model>, DbErr> {
-        Order::find()
+    pub async fn load_by_id(&self, id: i32) -> Result<Option<order::ModelEx>, DbErr> {
+        load_order().filter_by_id(id).one(self.get_db()).await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn load_by_user_product(
+        &self,
+        uid: i32,
+        pid: i32,
+    ) -> Result<Option<order::ModelEx>, DbErr> {
+        load_order()
             .filter(Self::default_filters())
             .filter(order::Column::UserId.eq(uid))
             .filter(order::Column::ProductId.eq(pid))
             .one(self.get_db())
+            .await
+    }
+
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn exists_by_user_product(&self, uid: i32, pid: i32) -> Result<bool, DbErr> {
+        Order::find()
+            .filter(Self::default_filters())
+            .filter(order::Column::UserId.eq(uid))
+            .filter(order::Column::ProductId.eq(pid))
+            .exists(self.get_db())
             .await
     }
 }

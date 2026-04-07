@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductPutDto {
     pub id: i32,
-    pub has_stock: bool,
     #[serde(flatten)]
     pub data: super::post::ProductPostDto,
 }
@@ -18,8 +17,6 @@ impl ProductPutDto {
 
 impl From<ProductPutDto> for product::ActiveModelEx {
     fn from(d: ProductPutDto) -> Self {
-        product::ActiveModelEx::from(d.data)
-            .set_id(d.id)
-            .set_has_stock(d.has_stock)
+        product::ActiveModelEx::from(d.data).set_id(d.id)
     }
 }

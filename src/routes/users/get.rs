@@ -1,7 +1,4 @@
-use dtos::{
-    product::get::ProductGetDto,
-    user::{get::UserGetDto, whoami::WhoamiDto},
-};
+use dtos::{ProductGetDto, UserGetDto, WhoamiDto};
 use entity::{prelude::*, product};
 use rocket::{
     State, get,

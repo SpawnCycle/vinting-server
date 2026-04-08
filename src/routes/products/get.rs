@@ -1,4 +1,4 @@
-use dtos::product::get::ProductGetDto;
+use dtos::ProductGetDto;
 use entity::{category, prelude::*, product};
 use rocket::{FromForm, State, get, http::uri::Host, serde::json::Json};
 use sea_orm::{
@@ -98,7 +98,7 @@ pub async fn all(
 }
 
 async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagination, DbErr> {
-    let mut q = Product::find().service_filter::<ProductService<DbConn>>();
+    let mut q = Product::find().service_filter::<ProductService>();
 
     if let Some(s) = filters.query {
         q = q.filter(

@@ -1,4 +1,4 @@
-use dtos::order::get::OrderGetDto;
+use dtos::OrderGetDto;
 use migrations::constants::ADMIN_ROLE;
 use rocket::{
     State, get,

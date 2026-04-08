@@ -1,7 +1,4 @@
-use dtos::{
-    order::{get::OrderGetDto, post::OrderPostDto},
-    product::{get::ProductGetDto, post::ProductPostDto},
-};
+use dtos::{OrderGetDto, OrderPostDto, ProductGetDto, ProductPostDto};
 use entity::{
     active_action::ActiveAction,
     image, order,

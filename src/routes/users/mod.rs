@@ -3,6 +3,7 @@
 
 mod get;
 mod post;
+mod put;
 
 use rocket::{
     Build, Rocket, async_trait,
@@ -29,6 +30,7 @@ impl Fairing for UsersFairing {
                 post::login_form,
                 post::login_json,
                 post::logout,
+                put::one,
                 get::whoami,
                 get::one,
                 get::all,

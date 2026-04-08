@@ -1,8 +1,10 @@
 use crate::service_trait::ServiceTrait;
-use entity::category;
+use entity::{active_action::ActiveAction, category};
 use sea_orm::{
+    ActiveValue::{NotSet, Set, Unchanged},
     ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
     PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
+    prelude::async_trait::async_trait,
 };
 
 pub struct CategoryService<'a, C = DbConn>(pub &'a C)
@@ -64,6 +66,7 @@ where
     }
 }
 
+#[async_trait]
 impl<C> ServiceTrait for CategoryService<'_, C>
 where
     C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send,
@@ -107,5 +110,42 @@ where
         db: &C,
     ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.update(db)
+    }
+
+    // overrides
+
+    async fn insert<M>(
+        &self,
+        active_model: M,
+    ) -> Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>
+    where
+        Self::Connection: TransactionTrait,
+        M: Into<<Self::Entity as EntityTrait>::ActiveModelEx> + Send,
+        <Self::Entity as EntityTrait>::ActiveModelEx: ActiveAction + Send,
+    {
+        let am = active_model.into() as category::ActiveModelEx;
+        let name = match am.name.clone() {
+            Set(name) | Unchanged(name) => name,
+            NotSet => {
+                return Err(DbErr::Custom(
+                    "Can't insert a tag without a name".to_string(),
+                ));
+            }
+        };
+
+        match category::Entity::find_by_name(name)
+            .one(self.get_db())
+            .await?
+        {
+            Some(existing_tag) => {
+                let am = am.set_id(existing_tag.id).creating();
+
+                am.creating()
+                    .set_id(existing_tag.id)
+                    .insert(self.get_db())
+                    .await
+            }
+            None => am.creating().insert(self.get_db()).await,
+        }
     }
 }

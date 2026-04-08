@@ -4,12 +4,19 @@ use std::thread;
 pub mod email_string;
 pub mod limited_string;
 
-pub mod category;
-pub mod image;
-pub mod order;
-pub mod product;
-pub mod tag;
-pub mod user;
+mod category;
+mod image;
+mod order;
+mod product;
+mod tag;
+mod user;
+
+pub use category::{get::*, post::*, put::*};
+pub use image::get::*;
+pub use order::{get::*, post::*, put::*};
+pub use product::{get::*, post::*, put::*};
+pub use tag::{get::*, post::*, put::*};
+pub use user::{get::*, post::*, put::*, whoami::*};
 
 // file structure: <model>/<method>.rs
 

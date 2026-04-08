@@ -26,6 +26,7 @@ pub struct ProductGetDto {
     pub brand: Option<String>,
     pub color: String,
 
+    pub starting_stock: u32,
     pub available_stock: u32,
     pub has_stock: bool,
 
@@ -60,6 +61,7 @@ impl ProductGetDto {
             description: m.description,
             available_stock: available,
             has_stock: available > 0,
+            starting_stock: m.overall_stock,
 
             price: m.price,
             size: m.size,

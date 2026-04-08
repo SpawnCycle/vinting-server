@@ -1,5 +1,6 @@
 mod delete;
 mod get;
+mod put;
 
 use rocket::{
     Build, Rocket, async_trait,
@@ -21,7 +22,7 @@ impl Fairing for OrderFairing {
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
         let r = r.mount(
             "/api/orders",
-            routes![get::one, get::from_user, get::all, delete::one,],
+            routes![get::one, get::from_user, get::all, delete::one, put::one],
         );
 
         Ok(r)

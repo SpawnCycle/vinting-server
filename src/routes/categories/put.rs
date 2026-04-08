@@ -1,4 +1,4 @@
-use dtos::category::put::CategoryPutDto;
+use dtos::CategoryPutDto;
 use migrations::constants::ADMIN_ROLE;
 use rocket::{State, put, response::status::NoContent, serde::json::Json};
 use sea_orm::DbConn;
@@ -33,6 +33,12 @@ pub async fn one(
     if !service.exists_by_id(id).await? {
         return Err(Responder::conflict(
             "There is no category with the given id",
+        ));
+    }
+
+    if service.exists_by_name(category.data.name.clone()).await? {
+        return Err(Responder::conflict(
+            "There is already a category with the given name",
         ));
     }
 

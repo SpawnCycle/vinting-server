@@ -1,5 +1,5 @@
 use argon2::{Argon2, PasswordVerifier};
-use dtos::user::{get::UserGetDto, post::UserPostDto};
+use dtos::{UserGetDto, UserPostDto};
 use entity::{active_action::ActiveAction, prelude::*, role, user};
 use migrations::constants::{ADMIN_ROLE, USER_ROLE};
 use rocket::{

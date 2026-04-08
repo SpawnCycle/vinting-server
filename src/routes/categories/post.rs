@@ -1,4 +1,5 @@
-use dtos::category::{get::CategoryGetDto, post::CategoryPostDto};
+use dtos::{CategoryGetDto, CategoryPostDto};
+use entity::{active_action::ActiveAction, category};
 use migrations::constants::ADMIN_ROLE;
 use rocket::{State, http::uri::Host, post, response::status::Created, serde::json::Json};
 use sea_orm::DbConn;
@@ -24,11 +25,20 @@ pub async fn one(
     let service = CategoryService(db);
     let category = data.into_inner();
 
-    if service.exists_by_name_all(&category.name).await? {
+    if service.exists_by_name(&category.name).await? {
         return Err(Responder::bad_request("The name already exists"));
     }
 
-    let model = service.insert(category).await?;
+    let model = match service.get_by_name_all(&category.name).await? {
+        Some(existing_category) => {
+            let am = category::ActiveModelEx::from(category)
+                .set_id(existing_category.id)
+                .creating();
+
+            service.insert(am).await?
+        }
+        None => service.insert(category).await?,
+    };
 
     Ok(Created::new(format!(
         "{}/api/categories/{}",

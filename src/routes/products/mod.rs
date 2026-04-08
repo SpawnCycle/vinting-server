@@ -3,7 +3,7 @@ mod get;
 mod post;
 mod put;
 
-use dtos::product::{post::ProductPostDto, put::ProductPutDto};
+use dtos::{ProductPostDto, ProductPutDto};
 use entity::{image, prelude::*, product};
 use rocket::{
     Build, Rocket, async_trait,

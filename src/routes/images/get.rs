@@ -1,4 +1,4 @@
-use dtos::image::get::ImageGetDto;
+use dtos::ImageGetDto;
 use rocket::{State, get, http::uri::Host, serde::json::Json};
 use sea_orm::DbConn;
 use services::{image_service::ImageService, service_trait::ServiceTrait};

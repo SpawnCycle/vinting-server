@@ -27,5 +27,7 @@ pub async fn one(
 
     let _ = service.delete_by_id(id).await?;
 
+    trx.commit().await?;
+
     Ok(NoContent)
 }

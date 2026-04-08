@@ -1,4 +1,4 @@
-use dtos::image::get::ImageGetDto;
+use dtos::ImageGetDto;
 use entity::{active_action::ActiveAction, image};
 use rocket::{
     FromForm, State,

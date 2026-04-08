@@ -28,7 +28,9 @@ pub mod active_action {
             impl $crate::active_action::ActiveAction for $am {
                 fn creating(self) -> Self {
                     let now = sea_orm::sea_query::prelude::Utc::now().naive_local();
-                    self.set_created_at(now).set_modified_at(now)
+                    self.set_created_at(now)
+                        .set_modified_at(now)
+                        .set_deleted_at(None)
                 }
                 fn modifying(self) -> Self {
                     let now = sea_orm::sea_query::prelude::Utc::now().naive_local();

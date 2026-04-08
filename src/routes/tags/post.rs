@@ -1,6 +1,6 @@
-use dtos::tag::{get::TagGetDto, post::TagPostDto};
+use dtos::{TagGetDto, TagPostDto};
 use rocket::{State, http::uri::Host, post, response::status::Created, serde::json::Json};
-use sea_orm::DbConn;
+use sea_orm::{DbConn, TransactionTrait};
 use services::{service_trait::ServiceTrait, tag_service::TagService};
 
 use crate::{constants::construct_host, responder::Responder};
@@ -11,15 +11,18 @@ pub async fn one(
     db: &State<DbConn>,
     data: Json<TagPostDto>,
 ) -> Result<Created<Json<TagGetDto>>, Responder> {
-    let db = db.inner();
+    let trx = db.begin().await?;
+    let db = &trx;
     let service = TagService(db);
     let tag = data.into_inner();
 
-    if service.exists_by_name_all(&tag.name).await? {
+    if service.exists_by_name(&tag.name).await? {
         return Err(Responder::conflict("Tag with the same name already exists"));
     }
 
     let model = service.insert(tag).await?;
+
+    trx.commit().await?;
 
     Ok(
         Created::new(format!("{}/api/tags/{}", construct_host(host), model.id))
@@ -29,7 +32,7 @@ pub async fn one(
 
 #[cfg(test)]
 mod tests {
-    use dtos::tag::post::TagPostDto;
+    use dtos::TagPostDto;
     use rocket::{local::asynchronous::Client, serde::json, uri};
 
     use super::*;

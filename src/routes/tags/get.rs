@@ -1,4 +1,4 @@
-use dtos::tag::get::TagGetDto;
+use dtos::TagGetDto;
 use rocket::{State, get, serde::json::Json};
 use sea_orm::DbConn;
 use services::{service_trait::ServiceTrait, tag_service::TagService};
@@ -31,7 +31,7 @@ pub async fn all(db: &State<DbConn>) -> Result<Json<Vec<TagGetDto>>, Responder> 
 #[cfg(test)]
 mod tests {
     use anyhow::anyhow;
-    use dtos::tag::get::TagGetDto;
+    use dtos::TagGetDto;
     use rocket::local::asynchronous::Client;
 
     use super::*;

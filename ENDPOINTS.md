@@ -52,6 +52,10 @@
   Requires: Admin role
   Accepts: NoContent
   Returns: `OrderGetDto[]`
+- PUT /api/orders/{id}:
+  Requires: Admin role
+  Accepts: `OrderPutDto`
+  Returns: NoContent
 - DELETE /api/orders/{id}:
   Requires: Admin role
   Accepts: NoContent
@@ -230,6 +234,7 @@ ProductPagination:
       "condition": "New | Like new | Used | Heavily used",
       "sex": "Male | Female | Unisex",
       "available_stock": 5,
+      "starting_stock": 1,
       "has_stock": true,
       "user": {
         "id": 1,
@@ -275,6 +280,7 @@ ProductGetDto:
   "condition": "New | Like new | Used | Heavily used",
   "sex": "Male | Female | Unisex",
   "available_stock": 5,
+  "starting_stock": 1,
   "has_stock": true,
   "user": {
     "id": 1,
@@ -310,6 +316,15 @@ OrderPostDto
 ```json
 {
   "ammount": 1
+}
+```
+
+OrderPutDto
+
+```json
+{
+  "id": 1,
+  "arrived": false
 }
 ```
 

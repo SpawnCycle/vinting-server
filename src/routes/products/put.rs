@@ -1,4 +1,4 @@
-use dtos::product::put::ProductPutDto;
+use dtos::ProductPutDto;
 use rocket::{State, http::CookieJar, put, response::status::NoContent, serde::json::Json};
 use sea_orm::{DbConn, TransactionTrait};
 use services::{product_service::ProductService, service_trait::ServiceTrait};

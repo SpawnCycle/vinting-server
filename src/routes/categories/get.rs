@@ -1,4 +1,4 @@
-use dtos::category::get::CategoryGetDto;
+use dtos::CategoryGetDto;
 use rocket::{State, get, serde::json::Json};
 use sea_orm::DbConn;
 use services::{category_service::CategoryService, service_trait::ServiceTrait};

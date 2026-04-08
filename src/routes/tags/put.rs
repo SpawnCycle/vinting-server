@@ -46,13 +46,12 @@ mod tests {
     use rocket::{local::asynchronous::Client, serde::json};
 
     use super::*;
-    use crate::testing;
+    use crate::testing::{self, tag};
 
     #[tokio::test]
-    async fn tags_put_tracked_successful_modification() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+    async fn tags_put_successful_modification_tracked() -> anyhow::Result<()> {
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -86,10 +85,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_put_tracked_bad_request() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+    async fn tags_put_bad_request_tracked() -> anyhow::Result<()> {
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -110,10 +108,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_put_tracked_doesnt_exist() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+    async fn tags_put_doesnt_exist_tracked() -> anyhow::Result<()> {
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -134,10 +131,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_put_func_successful_modification() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+    async fn tags_put_successful_modification_func() -> anyhow::Result<()> {
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
 
         let tag_text = "Tag 1 modified";
         let dto = TagPutDto {
@@ -154,10 +150,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_put_func_bad_request() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+    async fn tags_put_bad_request_func() -> anyhow::Result<()> {
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
 
         let dto = TagPutDto {
             id: 1,
@@ -173,10 +168,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_put_func_doesnt_exist() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+    async fn tags_put_doesnt_exist_func() -> anyhow::Result<()> {
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
 
         let dto = TagPutDto {
             id: 1000,

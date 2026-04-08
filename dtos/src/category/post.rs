@@ -1,7 +1,7 @@
 use entity::category;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CategoryPostDto {
     pub name: String,
 }

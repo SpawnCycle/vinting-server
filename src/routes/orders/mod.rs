@@ -33,10 +33,12 @@ impl Fairing for OrderFairing {
 mod tests {
     use sea_orm::Database;
 
+    use crate::testing;
+
     #[tokio::test]
     async fn ignites_successfully() -> anyhow::Result<()> {
         let db = Database::connect("sqlite::memory:").await?;
-        let r = rocket::build().manage(db).attach(super::OrderFairing);
+        let r = testing::rocket(db).await?.attach(super::OrderFairing);
 
         r.ignite().await?;
 

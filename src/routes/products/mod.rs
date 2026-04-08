@@ -123,10 +123,12 @@ where
 mod tests {
     use sea_orm::Database;
 
+    use crate::testing;
+
     #[tokio::test]
     async fn ignites_successfully() -> anyhow::Result<()> {
         let db = Database::connect("sqlite::memory:").await?;
-        let r = rocket::build().manage(db).attach(super::ProductFairing);
+        let r = testing::rocket(db).await?.attach(super::ProductFairing);
 
         r.ignite().await?;
 

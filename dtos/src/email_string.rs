@@ -1,5 +1,6 @@
 //! variant of <https://stackoverflow.com/questions/74482350/adding-length-limit-when-deserializing-a-string-a-vec-or-an-array>
 
+use anyhow::anyhow;
 use regex::Regex;
 use serde::{de, ser};
 use std::{ops::Deref, sync::LazyLock};
@@ -12,6 +13,18 @@ impl Deref for EmailString {
     type Target = String;
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl TryFrom<String> for EmailString {
+    type Error = anyhow::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if EMAIL_RX.is_match(&value) {
+            Ok(EmailString(value))
+        } else {
+            Err(anyhow!("The string is not an email string"))
+        }
     }
 }
 
@@ -30,13 +43,8 @@ impl<'de> de::Deserialize<'de> for EmailString {
     where
         D: de::Deserializer<'de>,
     {
-        <String as de::Deserialize>::deserialize(deserializer).and_then(|inner| {
-            if EMAIL_RX.is_match(&inner) {
-                Ok(EmailString(inner))
-            } else {
-                Err(de::Error::custom("The string is not an email string"))
-            }
-        })
+        <String as de::Deserialize>::deserialize(deserializer)
+            .and_then(|inner| Self::try_from(inner).map_err(de::Error::custom))
     }
 }
 

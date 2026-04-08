@@ -36,13 +36,12 @@ mod tests {
     use rocket::{local::asynchronous::Client, serde::json, uri};
 
     use super::*;
-    use crate::testing;
+    use crate::testing::{self, tag};
 
     #[tokio::test]
     async fn tags_post_tracked_unique() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -64,9 +63,8 @@ mod tests {
 
     #[tokio::test]
     async fn tags_post_tracked_conflict() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -87,9 +85,8 @@ mod tests {
 
     #[tokio::test]
     async fn tags_post_func_unique() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
         let host = Host::new(uri!("localhost:8000"));
 
         let dto = TagPostDto {
@@ -104,9 +101,8 @@ mod tests {
 
     #[tokio::test]
     async fn tags_post_func_conflict() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
         let host = Host::new(uri!("localhost:8000"));
 
         let dto = TagPostDto {

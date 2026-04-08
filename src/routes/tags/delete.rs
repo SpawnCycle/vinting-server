@@ -23,13 +23,12 @@ mod tests {
     use rocket::local::asynchronous::Client;
 
     use super::*;
-    use crate::testing;
+    use crate::testing::tag;
 
     #[tokio::test]
     async fn tags_delete_tracked() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -61,9 +60,8 @@ mod tests {
 
     #[tokio::test]
     async fn tags_delete_func() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
 
         let tags = one(1, db).await;
 

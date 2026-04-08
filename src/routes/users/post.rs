@@ -14,7 +14,7 @@ use sea_orm::{DbConn, IntoActiveModel};
 use services::{service_trait::ServiceTrait, user_service::UserService};
 
 use crate::{
-    constants::{ADMIN_EMAIL, JWT_KEY, construct_host},
+    constants::{AdminEmail, JWT_KEY, construct_host},
     jwt::JwtClaims,
     responder::Responder,
 };
@@ -30,6 +30,7 @@ pub async fn signup(
     host: &Host<'_>,
     jar: &CookieJar<'_>,
     db: &State<DbConn>,
+    admin_email: &State<AdminEmail>,
     data: Json<UserPostDto>,
 ) -> Result<Created<Json<UserGetDto>>, Responder> {
     let db = db.inner();
@@ -48,8 +49,8 @@ pub async fn signup(
     );
 
     let user = user::ActiveModelEx::from(user).add_role(default_role);
-    let user = if let Some(admin_email) = *ADMIN_EMAIL
-        && *email == admin_email
+    let user = if let Some(admin_email) = &admin_email.0
+        && *email == *admin_email
     {
         let admin_role = Role::find_by_name(ADMIN_ROLE).one(db).await?.map_or(
             role::ActiveModelEx::new().creating().set_name(ADMIN_ROLE),

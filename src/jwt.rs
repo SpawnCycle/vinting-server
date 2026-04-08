@@ -178,6 +178,8 @@ impl<'a> FromRequest<'a> for JwtClaims {
         };
         let jwt = jwt.to_string();
 
+        let jwt = jwt.clone().split_once(";").map_or(jwt, |s| s.0.to_string());
+
         let Some((_key, jwt)) = jwt.split_once("=") else {
             jar.remove(JWT_KEY);
             return Outcome::Error((

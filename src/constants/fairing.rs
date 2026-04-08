@@ -5,6 +5,8 @@ use rocket::{
     fairing::{self, Fairing, Info, Kind},
 };
 
+use crate::constants::AdminEmail;
+
 use super::{ADMIN_EMAIL, JWT_SECRET};
 
 pub struct LazyProcFairing;
@@ -24,6 +26,8 @@ impl Fairing for LazyProcFairing {
             return Err(r);
         };
         let _ = LazyLock::<_>::force(&ADMIN_EMAIL);
+
+        let r = r.manage(AdminEmail(ADMIN_EMAIL.clone()));
 
         Ok(r)
     }

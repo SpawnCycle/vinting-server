@@ -59,7 +59,7 @@ impl Fairing for DatabaseFairing {
 }
 
 async fn register_admin(db: &DbConn) -> Result<(), DbErr> {
-    let Some(email) = *ADMIN_EMAIL else {
+    let Some(email) = &*ADMIN_EMAIL else {
         return Ok(());
     };
     let Some(user) = User::find_by_email(email).one(db).await? else {

@@ -1,5 +1,4 @@
 use dtos::{CategoryGetDto, CategoryPostDto};
-use entity::{active_action::ActiveAction, category};
 use migrations::constants::ADMIN_ROLE;
 use rocket::{State, http::uri::Host, post, response::status::Created, serde::json::Json};
 use sea_orm::DbConn;
@@ -26,19 +25,12 @@ pub async fn one(
     let category = data.into_inner();
 
     if service.exists_by_name(&category.name).await? {
-        return Err(Responder::bad_request("The name already exists"));
+        return Err(Responder::conflict(
+            "A category with the given name already exists",
+        ));
     }
 
-    let model = match service.get_by_name_all(&category.name).await? {
-        Some(existing_category) => {
-            let am = category::ActiveModelEx::from(category)
-                .set_id(existing_category.id)
-                .creating();
-
-            service.insert(am).await?
-        }
-        None => service.insert(category).await?,
-    };
+    let model = service.insert(category).await?;
 
     Ok(Created::new(format!(
         "{}/api/categories/{}",
@@ -46,4 +38,102 @@ pub async fn one(
         model.id
     ))
     .body(Json(model.into())))
+}
+
+#[cfg(test)]
+mod tests {
+    use dtos::CategoryPostDto;
+    use rocket::{serde::json, uri};
+
+    use super::*;
+    use crate::testing::{self, category};
+
+    #[tokio::test]
+    async fn categories_post_unique_tracked() -> anyhow::Result<()> {
+        let db = category::db().await?;
+        let r = category::rocket(db).await?;
+
+        let client = testing::admin_client(r).await?;
+
+        let dto = CategoryPostDto {
+            name: "Category unique".to_string(),
+        };
+        let req =
+            testing::json_request(client.post("/api/categories/").body(json::to_string(&dto)?));
+
+        let res = req.dispatch().await;
+
+        assert_eq!(
+            res.status().code,
+            201,
+            "This should create a new category successfully"
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn categories_post_conflict_tracked() -> anyhow::Result<()> {
+        let db = category::db().await?;
+        let r = category::rocket(db).await?;
+
+        let client = testing::admin_client(r).await?;
+
+        let dto = CategoryPostDto {
+            name: "Category 1".to_string(),
+        };
+        let req =
+            testing::json_request(client.post("/api/categories/").body(json::to_string(&dto)?));
+        let res = req.dispatch().await;
+
+        assert_eq!(
+            res.status().code,
+            409,
+            "This should create a conflict, because 'Category 1' already exists"
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn categories_post_unique_func() -> anyhow::Result<()> {
+        let db = category::db().await?;
+        let db = State::from(&db);
+        let host = Host::new(uri!("localhost:8000"));
+
+        let dto = CategoryPostDto {
+            name: "Category unique".to_string(),
+        };
+
+        let claims = JwtClaims::new(1);
+        let res = one(&host, claims, db, Json(dto)).await;
+
+        assert!(
+            res.is_ok(),
+            "This should create a new category successfully"
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn categories_post_conflict_func() -> anyhow::Result<()> {
+        let db = category::db().await?;
+        let db = State::from(&db);
+        let host = Host::new(uri!("localhost:8000"));
+
+        let dto = CategoryPostDto {
+            name: "Category 1".to_string(),
+        };
+
+        let claims = JwtClaims::new(1);
+        let res = one(&host, claims, db, Json(dto)).await;
+
+        assert!(
+            res.is_err(),
+            "This should create a conflict, because 'Category 1' already exists"
+        );
+
+        Ok(())
+    }
 }

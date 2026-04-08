@@ -40,10 +40,10 @@ pub enum Responder {
     Conflict(String),
     #[response(status = 404)]
     NotFound(String),
-    #[response(status = 403)]
-    BadRequest(String),
     #[response(status = 401)]
     Unauhorized(String),
+    #[response(status = 400)]
+    BadRequest(String),
 }
 
 impl Display for Responder {

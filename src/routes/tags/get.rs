@@ -35,13 +35,12 @@ mod tests {
     use rocket::local::asynchronous::Client;
 
     use super::*;
-    use crate::testing;
+    use crate::testing::{self, tag};
 
     #[tokio::test]
     async fn tags_get_all_tracked() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -60,9 +59,8 @@ mod tests {
 
     #[tokio::test]
     async fn tags_get_all_func() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
 
         let tags = all(db).await?;
 
@@ -73,10 +71,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_get_by_id_tracked_exists() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+    async fn tags_get_by_id_exists_tracked() -> anyhow::Result<()> {
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -90,7 +87,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_get_by_id_tracked_deleted() -> anyhow::Result<()> {
+    async fn tags_get_by_id_deleted_tracked() -> anyhow::Result<()> {
         let db = testing::db().await?;
         testing::tag::seed_db(&db).await?;
         let r = testing::rocket(db).await?;
@@ -106,10 +103,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_get_by_id_tracked_not_existant() -> anyhow::Result<()> {
-        let db = testing::db().await?;
-        testing::tag::seed_db(&db).await?;
-        let r = testing::rocket(db).await?;
+    async fn tags_get_by_id_not_existant_tracked() -> anyhow::Result<()> {
+        let db = tag::db().await?;
+        let r = tag::rocket(db).await?;
 
         let client = Client::tracked(r).await?;
 
@@ -122,30 +118,34 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tags_get_by_id_func() -> anyhow::Result<()> {
-        let db = testing::db().await?;
+    async fn tags_get_by_id_exists_func() -> anyhow::Result<()> {
+        let db = tag::db().await?;
         let db = State::from(&db);
-        testing::tag::seed_db(db).await?;
 
-        {
-            let res = one(1, db).await;
-            assert!(res.is_ok(), "The first tag is not deleted");
-        }
+        let res = one(1, db).await;
+        assert!(res.is_ok(), "The first tag is not deleted");
 
-        {
-            let res = one(2, db).await;
-            assert!(res.is_ok(), "The second tag is not deleted");
-        }
+        Ok(())
+    }
 
-        {
-            let res = one(5, db).await;
-            assert!(res.is_err(), "The fifth tag is deleted");
-        }
+    #[tokio::test]
+    async fn tags_get_by_id_deleted_func() -> anyhow::Result<()> {
+        let db = tag::db().await?;
+        let db = State::from(&db);
 
-        {
-            let res = one(1000, db).await;
-            assert!(res.is_err(), "The 1000th tag does not exist");
-        }
+        let res = one(5, db).await;
+        assert!(res.is_err(), "The fifth tag is deleted");
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn tags_get_by_id_not_existant_tracked_func() -> anyhow::Result<()> {
+        let db = tag::db().await?;
+        let db = State::from(&db);
+
+        let res = one(1000, db).await;
+        assert!(res.is_err(), "The 1000th tag does not exist");
 
         Ok(())
     }

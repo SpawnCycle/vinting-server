@@ -27,11 +27,11 @@ pub static JWT_SECRET: LazyLock<Option<&str>> =
         }
     });
 
-pub static ADMIN_EMAIL: LazyLock<Option<&str>> =
+pub static ADMIN_EMAIL: LazyLock<Option<String>> =
     LazyLock::new(|| match dotenvy::var("ADMIN_EMAIL") {
         Ok(var) => {
             if dtos::email_string::EMAIL_RX.is_match(&var) {
-                Some(var.leak())
+                Some(var)
             } else {
                 log::warn!("ADMIN_EMAIL doesn't match the email regex");
                 None
@@ -42,3 +42,7 @@ pub static ADMIN_EMAIL: LazyLock<Option<&str>> =
             None
         }
     });
+
+/// The type in which rocket manages the admin email
+#[allow(dead_code)]
+pub struct AdminEmail(pub Option<String>);

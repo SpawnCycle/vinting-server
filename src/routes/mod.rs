@@ -17,6 +17,10 @@ mod products;
 mod tags;
 mod users;
 
+mod fairings;
+
+pub use fairings::*;
+
 use std::{
     hash::{DefaultHasher, Hash, Hasher},
     io,
@@ -30,13 +34,7 @@ use rocket::{
 use sha2::Digest;
 use tokio::{fs::try_exists, io::AsyncReadExt};
 
-use crate::{
-    constants::USE_SHA,
-    routes::{
-        categories::CategoriesFairing, images::ImagesFairing, orders::OrderFairing,
-        products::ProductFairing, tags::TagsFairing, users::UsersFairing,
-    },
-};
+use crate::constants::USE_SHA;
 
 pub struct AllRouteFairing;
 
@@ -113,7 +111,7 @@ mod tests {
     #[tokio::test]
     async fn ignites_successfully() -> anyhow::Result<()> {
         let db = testing::db().await?;
-        let r = rocket::build().manage(db).attach(super::AllRouteFairing);
+        let r = testing::rocket(db).await?.attach(super::AllRouteFairing);
 
         r.ignite().await?;
 

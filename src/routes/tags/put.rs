@@ -102,7 +102,7 @@ mod tests {
 
         let res = req.dispatch().await;
 
-        assert_eq!(res.status().code, 403, "This should return a bad request");
+        assert_eq!(res.status().code, 400, "This should return a bad request");
 
         Ok(())
     }

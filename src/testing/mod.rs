@@ -13,14 +13,19 @@ use rocket::{
 };
 use sea_orm::{Database, DbConn, DbErr, IntoActiveModel};
 
-use crate::{config, constants::AdminEmail, routes::UsersFairing};
+use crate::{config, constants::AdminEmail};
 
 // admin is id 1
 // user is id 2
 pub async fn db() -> Result<DbConn, DbErr> {
     let db = Database::connect("sqlite::memory:").await?;
     db.get_schema_registry("entity::*").sync(&db).await?;
-    migrations::Migrator.up(&db, None).await?;
+
+    Ok(db)
+}
+
+pub async fn setup_users(db: &DbConn) -> Result<(), DbErr> {
+    migrations::Migrator.up(db, None).await?;
 
     let admin = UserPostDto {
         name: "admin".to_string(),
@@ -37,12 +42,12 @@ pub async fn db() -> Result<DbConn, DbErr> {
     };
 
     let admin_role = role::Entity::find_by_name("Admin")
-        .one(&db)
+        .one(db)
         .await?
         .ok_or(DbErr::Custom("Couldn't find Admin role".to_string()))?
         .into_active_model();
     let user_role = role::Entity::find_by_name("User")
-        .one(&db)
+        .one(db)
         .await?
         .ok_or(DbErr::Custom("Couldn't find User role".to_string()))?
         .into_active_model();
@@ -51,22 +56,21 @@ pub async fn db() -> Result<DbConn, DbErr> {
         .add_role(admin_role.clone())
         .add_role(user_role.clone())
         .creating()
-        .insert(&db)
+        .insert(db)
         .await?;
     entity::user::ActiveModelEx::from(user)
         .add_role(user_role.clone())
         .creating()
-        .insert(&db)
+        .insert(db)
         .await?;
 
-    Ok(db)
+    Ok(())
 }
 
 pub async fn rocket(db: DbConn) -> Result<Rocket<Build>, rocket::Error> {
     let r = config::rocket()
         .manage(db)
-        .manage(AdminEmail(Some("admin@admin.com".to_string())))
-        .attach(UsersFairing); // to be able to access admin users
+        .manage(AdminEmail(Some("admin@admin.com".to_string())));
 
     Ok(r)
 }

@@ -2,18 +2,25 @@ use entity::{active_action::ActiveAction, category};
 use rocket::{Build, Rocket};
 use sea_orm::{ActiveValue::Set, DbConn, DbErr, TransactionTrait};
 
-use crate::routes::CategoriesFairing;
+use crate::{
+    routes::{CategoriesFairing, UsersFairing},
+    testing::setup_users,
+};
 
 pub async fn db() -> Result<DbConn, DbErr> {
     let db = super::db().await?;
 
     seed_db(&db).await?;
+    setup_users(&db).await?;
 
     Ok(db)
 }
 
 pub async fn rocket(db: DbConn) -> Result<Rocket<Build>, rocket::Error> {
-    let r = super::rocket(db).await?.attach(CategoriesFairing);
+    let r = super::rocket(db)
+        .await?
+        .attach(CategoriesFairing)
+        .attach(UsersFairing);
 
     Ok(r)
 }

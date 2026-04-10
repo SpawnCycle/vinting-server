@@ -16,3 +16,18 @@ impl MigratorTrait for Migrator {
         ]
     }
 }
+
+pub mod testing {
+    use super::*;
+
+    pub use sea_orm_migration::*;
+
+    pub struct TestMigrator;
+
+    #[async_trait::async_trait]
+    impl MigratorTrait for TestMigrator {
+        fn migrations() -> Vec<Box<dyn MigrationTrait>> {
+            vec![Box::new(m20260316_seed_roles::Migration)]
+        }
+    }
+}

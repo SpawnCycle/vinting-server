@@ -25,7 +25,7 @@ pub async fn db() -> Result<DbConn, DbErr> {
 }
 
 pub async fn setup_users(db: &DbConn) -> Result<(), DbErr> {
-    migrations::Migrator.up(db, None).await?;
+    migrations::testing::TestMigrator.up(db, None).await?;
 
     let admin = UserPostDto {
         name: "admin".to_string(),

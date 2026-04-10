@@ -1,8 +1,9 @@
 use dtos::ProductGetDto;
 use entity::{category, prelude::*, product};
-use rocket::{FromForm, State, get, http::uri::Host, serde::json::Json};
+use rocket::{FromForm, FromFormField, State, get, http::uri::Host, serde::json::Json};
 use sea_orm::{
-    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect,
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, Order, PaginatorTrait, QueryFilter,
+    QueryOrder, QuerySelect,
 };
 use serde::Serialize;
 use services::{
@@ -12,6 +13,14 @@ use services::{
 
 use crate::{constants::construct_host, responder::Responder, routes::id_model::IdModel};
 
+#[derive(Debug, Clone, Copy, FromFormField)]
+enum ProductSort {
+    #[field(value = "date")]
+    Date,
+    #[field(value = "price")]
+    Price,
+}
+
 #[derive(Debug, Clone, FromForm)]
 pub struct ProductFilter {
     query: Option<String>,
@@ -20,6 +29,8 @@ pub struct ProductFilter {
     color: Option<String>,
     condition: Option<String>,
     categories: Option<Vec<String>>,
+    sort_by: Option<ProductSort>,
+    asc: bool,
     #[field(default = 0)]
     page: u64,
     #[field(default = 10)]
@@ -131,6 +142,20 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
             .group_by(product::Column::Id)
             .service_filter::<CategoryService>()
             .filter(category::Column::Name.is_in(c));
+    }
+
+    let ordering = match filters.asc {
+        true => Order::Asc,
+        false => Order::Desc,
+    };
+
+    match filters.sort_by {
+        None | Some(ProductSort::Date) => {
+            q = q.order_by(product::Column::CreatedAt, ordering);
+        }
+        Some(ProductSort::Price) => {
+            q = q.order_by(product::Column::Price, ordering);
+        }
     }
 
     // wish I could filter with a join inside of a loader, but alas it is not a thing,

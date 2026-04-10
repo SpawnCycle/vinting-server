@@ -30,6 +30,7 @@ pub struct ProductFilter {
     condition: Option<String>,
     categories: Option<Vec<String>>,
     sort_by: Option<ProductSort>,
+    #[field(default = false)]
     asc: bool,
     #[field(default = 0)]
     page: u64,
@@ -83,23 +84,25 @@ pub async fn all(
 ) -> Result<Json<ProductPagination>, Responder> {
     let db = db.inner();
     let host = construct_host(host);
+    let service = ProductService(db);
 
-    let ids = get_matching_ids(filters, db).await?;
+    let ids = get_matching_ids(filters.clone(), db).await?;
 
-    let products = Product::load()
-        .with(User)
-        .with(Category)
-        .with(Tag)
-        .with(Image)
-        .filter(product::Column::Id.is_in(ids.data))
-        .all(db)
-        .await?
-        .into_iter()
-        .map(|p| {
-            ProductGetDto::from_model_with_host(p, &host)
-                .expect("The model should be properly loaded")
-        })
-        .collect::<Vec<_>>();
+    let mut products = Vec::new();
+
+    // This results in more queries than I'd want, which is very sad,
+    // but it's needed to maintain the order of the products
+    for id in ids.data {
+        products.push(
+            service
+                .load_by_id_mutating(id, |m| {
+                    ProductGetDto::from_model_with_host(m, &host)
+                        .expect("The model should be properly loaded")
+                })
+                .await?
+                .expect("This id was just aquired from the db"),
+        );
+    }
 
     Ok(Json(ProductPagination {
         data: products,
@@ -144,17 +147,16 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
             .filter(category::Column::Name.is_in(c));
     }
 
-    let ordering = match filters.asc {
-        true => Order::Asc,
-        false => Order::Desc,
+    let order_col = match filters.sort_by {
+        None | Some(ProductSort::Date) => product::Column::CreatedAt,
+        Some(ProductSort::Price) => product::Column::Price,
     };
-
-    match filters.sort_by {
-        None | Some(ProductSort::Date) => {
-            q = q.order_by(product::Column::CreatedAt, ordering);
+    match filters.asc {
+        true => {
+            q = q.order_by_asc(order_col);
         }
-        Some(ProductSort::Price) => {
-            q = q.order_by(product::Column::Price, ordering);
+        false => {
+            q = q.order_by_desc(order_col);
         }
     }
 

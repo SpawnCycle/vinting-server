@@ -9,7 +9,7 @@ use rocket::{
 use sea_orm::{
     DatabaseConnection, DbConn, DbErr, IntoActiveModel, SqlxError,
     sqlx::{
-        SqlitePool,
+        ConnectOptions, SqlitePool,
         sqlite::{SqliteConnectOptions, SqlitePoolOptions},
     },
 };
@@ -88,6 +88,12 @@ async fn connect_db() -> Result<SqlitePool, SqlxError> {
         SqliteConnectOptions::new()
             .filename("./vinting.db") // TODO: maybe change in the future?
             .create_if_missing(true)
+    };
+
+    let opts = if cfg!(debug_assertions) {
+        opts.log_statements(log::LevelFilter::Info)
+    } else {
+        opts
     };
 
     let pool_opts = if use_memory {

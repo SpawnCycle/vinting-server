@@ -18,7 +18,7 @@ impl MigratorTrait for Migrator {
 }
 
 pub mod testing {
-    use super::*;
+    use super::m20260316_seed_roles;
 
     pub use sea_orm_migration::*;
 

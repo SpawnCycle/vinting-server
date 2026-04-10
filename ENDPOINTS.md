@@ -33,6 +33,8 @@
   - color: `string` (optional)
   - condition: `string` (optional)
   - categories: `string[]` (optional)
+  - order_by: `"date" | "price"` (optional)
+  - asc: `boolean` (default: false)
   - page: `number` (default: 1, first page has the index of 1)
   - page_size: `number` (default: 10)
 

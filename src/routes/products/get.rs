@@ -2,8 +2,8 @@ use dtos::ProductGetDto;
 use entity::{category, prelude::*, product};
 use rocket::{FromForm, FromFormField, State, get, http::uri::Host, serde::json::Json};
 use sea_orm::{
-    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, Order, PaginatorTrait, QueryFilter,
-    QueryOrder, QuerySelect,
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect,
 };
 use serde::Serialize;
 use services::{

@@ -2,7 +2,7 @@ pub mod category;
 pub mod tag;
 
 use anyhow::anyhow;
-use dtos::{UserPostDto, email_string::EmailString};
+use dtos::UserPostDto;
 use entity::{active_action::ActiveAction, role};
 use migrations::MigratorTraitSelf;
 use rocket::{
@@ -15,8 +15,6 @@ use sea_orm::{Database, DbConn, DbErr, IntoActiveModel};
 
 use crate::{config, constants::AdminEmail};
 
-// admin is id 1
-// user is id 2
 pub async fn db() -> Result<DbConn, DbErr> {
     let db = Database::connect("sqlite::memory:").await?;
     db.get_schema_registry("entity::*").sync(&db).await?;
@@ -24,21 +22,33 @@ pub async fn db() -> Result<DbConn, DbErr> {
     Ok(db)
 }
 
+// admin is id 1
+// user is id 2
 pub async fn setup_users(db: &DbConn) -> Result<(), DbErr> {
     migrations::testing::TestMigrator.up(db, None).await?;
 
     let admin = UserPostDto {
         name: "admin".to_string(),
-        email: EmailString::try_from("admin@admin.com".to_string())
+        email: "admin@admin.com"
+            .to_string()
+            .try_into()
             .expect("This is, in fact, an email"),
-        password: "password".to_string(),
+        password: "password"
+            .to_string()
+            .try_into()
+            .expect("This fits the constrains"),
     };
 
     let user = UserPostDto {
         name: "user".to_string(),
-        email: EmailString::try_from("user@user.com".to_string())
+        email: "user@user.com"
+            .to_string()
+            .try_into()
             .expect("This is, in fact, an email"),
-        password: "password".to_string(),
+        password: "password"
+            .to_string()
+            .try_into()
+            .expect("This fits the constrains"),
     };
 
     let admin_role = role::Entity::find_by_name("Admin")

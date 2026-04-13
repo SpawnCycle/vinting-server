@@ -138,7 +138,7 @@ where
 
                 am.creating()
                     .set_id(existing_tag.id)
-                    .insert(self.get_db())
+                    .update(self.get_db())
                     .await
             }
             None => am.creating().insert(self.get_db()).await,

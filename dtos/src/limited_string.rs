@@ -1,5 +1,6 @@
 //! based on <https://stackoverflow.com/questions/74482350/adding-length-limit-when-deserializing-a-string-a-vec-or-an-array>
 
+use anyhow::anyhow;
 use serde::{de, ser};
 use std::ops::Deref;
 
@@ -13,6 +14,27 @@ impl<const MAX_LENGTH: usize, const MIN_LENGTH: usize> Deref
     type Target = String;
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl<const MAX_LENGTH: usize, const MIN_LENGTH: usize> TryFrom<String>
+    for LimitedString<MAX_LENGTH, MIN_LENGTH>
+{
+    type Error = anyhow::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let char_count = value.chars().count();
+        if char_count < MIN_LENGTH {
+            Err(anyhow!(
+                "The given string was shorter than the allowed length",
+            ))
+        } else if char_count > MAX_LENGTH {
+            Err(anyhow!(
+                "The given string was longer than the allowed length",
+            ))
+        } else {
+            Ok(Self(value))
+        }
     }
 }
 
@@ -31,22 +53,8 @@ impl<'de, const MAX_LENGTH: usize, const MIN_LENGTH: usize> de::Deserialize<'de>
     where
         D: de::Deserializer<'de>,
     {
-        <String as de::Deserialize>::deserialize(deserializer).and_then(|inner| {
-            let char_count = inner.chars().count();
-            if char_count < MIN_LENGTH {
-                Err(de::Error::invalid_length(
-                    inner.len(),
-                    &"The given string was shorter than the allowed length",
-                ))
-            } else if char_count > MAX_LENGTH {
-                Err(de::Error::invalid_length(
-                    inner.len(),
-                    &"The given string was longer than the allowed length",
-                ))
-            } else {
-                Ok(Self(inner))
-            }
-        })
+        <String as de::Deserialize>::deserialize(deserializer)
+            .and_then(|inner| Self::try_from(inner).map_err(de::Error::custom))
     }
 }
 

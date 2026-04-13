@@ -1,8 +1,10 @@
 use crate::service_trait::ServiceTrait;
-use entity::user;
+use entity::{active_action::ActiveAction, user};
 use sea_orm::{
+    ActiveValue::{NotSet, Set, Unchanged},
     ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
     PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
+    prelude::async_trait::async_trait,
 };
 
 pub struct UserService<'a, C = DbConn>(pub &'a C)
@@ -54,6 +56,7 @@ where
     }
 }
 
+#[async_trait]
 impl<C> ServiceTrait for UserService<'_, C>
 where
     C: ConnectionTrait + Send,
@@ -98,5 +101,38 @@ where
         db: &C,
     ) -> impl Future<Output = Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>> {
         am.update(db)
+    }
+    // overrides
+
+    async fn insert<M>(
+        &self,
+        active_model: M,
+    ) -> Result<<Self::Entity as EntityTrait>::ModelEx, DbErr>
+    where
+        Self::Connection: TransactionTrait,
+        M: Into<<Self::Entity as EntityTrait>::ActiveModelEx> + Send,
+        <Self::Entity as EntityTrait>::ActiveModelEx: ActiveAction + Send,
+    {
+        let am = active_model.into() as user::ActiveModelEx;
+        let name = match am.email.clone() {
+            Set(name) | Unchanged(name) => name,
+            NotSet => {
+                return Err(DbErr::Custom(
+                    "Can't insert a user without an email".to_string(),
+                ));
+            }
+        };
+
+        match user::Entity::find_by_email(name).one(self.get_db()).await? {
+            Some(existing_user) => {
+                let am = am.set_id(existing_user.id).creating();
+
+                am.creating()
+                    .set_id(existing_user.id)
+                    .update(self.get_db())
+                    .await
+            }
+            None => am.creating().insert(self.get_db()).await,
+        }
     }
 }

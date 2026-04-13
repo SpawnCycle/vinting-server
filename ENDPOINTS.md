@@ -74,6 +74,10 @@
 - POST /api/users/logout:
   Accepts: NoContent
   Returns: NoContent
+- PUT /api/users/{id}:
+  Requires: Logged in && (you are logged in as the {id}th user || Admin role)
+  Accepts: NoContent
+  Returns: NoContent
 - GET /api/users/whoami
   Requires: Logged in
   Accepts: NoContent

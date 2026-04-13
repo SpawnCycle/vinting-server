@@ -24,7 +24,10 @@ where
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn load_all(&self) -> Result<Vec<order::ModelEx>, DbErr> {
-        load_order().all(self.get_db()).await
+        load_order()
+            .filter(Self::default_filters())
+            .all(self.get_db())
+            .await
     }
 
     /// # Errors
@@ -34,6 +37,7 @@ where
         F: FnMut(order::ModelEx) -> T,
     {
         Ok(load_order()
+            .filter(Self::default_filters())
             .all(self.get_db())
             .await?
             .into_iter()
@@ -45,6 +49,7 @@ where
     /// Returns the error produced by sea-orm
     pub async fn load_from_user(&self, uid: i32) -> Result<Vec<order::ModelEx>, DbErr> {
         load_order()
+            .filter(Self::default_filters())
             .filter(order::Column::UserId.eq(uid))
             .all(self.get_db())
             .await
@@ -53,7 +58,11 @@ where
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn load_by_id(&self, id: i32) -> Result<Option<order::ModelEx>, DbErr> {
-        load_order().filter_by_id(id).one(self.get_db()).await
+        load_order()
+            .filter(Self::default_filters())
+            .filter_by_id(id)
+            .one(self.get_db())
+            .await
     }
 
     /// # Errors

@@ -2,8 +2,8 @@ use dtos::ProductGetDto;
 use entity::{category, prelude::*, product};
 use rocket::{FromForm, FromFormField, State, get, http::uri::Host, serde::json::Json};
 use sea_orm::{
-    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect,
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, ExprTrait, PaginatorTrait, QueryFilter,
+    QueryOrder, QuerySelect,
 };
 use serde::Serialize;
 use services::{
@@ -112,7 +112,12 @@ pub async fn all(
 }
 
 async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagination, DbErr> {
-    let mut q = Product::find().service_filter::<ProductService>();
+    let mut q = Product::find().service_filter::<ProductService>().filter(
+        // filter the sold products
+        product::Column::OverallStock
+            .into_expr()
+            .gt(product::Column::SoldStock.into_expr()),
+    );
 
     if let Some(s) = filters.query {
         q = q.filter(

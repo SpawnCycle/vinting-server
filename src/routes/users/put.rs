@@ -1,5 +1,4 @@
 use dtos::UserPutDto;
-use entity::user;
 use migrations::constants::ADMIN_ROLE;
 use rocket::{State, put, response::status::NoContent, serde::json::Json};
 use sea_orm::{DbConn, TransactionTrait};
@@ -17,9 +16,9 @@ pub async fn one(
     let trx = db.begin().await?;
     let db = &trx;
     let service = UserService(db);
-    let user_am = data.into_inner();
+    let user_dto = data.into_inner();
 
-    if id != user_am.id {
+    if id != user_dto.id {
         return Err(Responder::bad_request(
             "The id in the url and the body don't match",
         ));
@@ -29,20 +28,23 @@ pub async fn one(
         "The user with the given id doesn't exist",
     ))?;
 
-    if user.id != claims.uid || !claims.has_role(db, ADMIN_ROLE).await? {
+    if user.id != claims.uid && !claims.has_role(db, ADMIN_ROLE).await? {
         return Err(Responder::unauhorized("You can't change this user"));
     }
 
-    if let Some(email) = user_am.email.clone()
-        && service.exists_by_email_all(email).await?
+    if let Some(email) = user_dto.email.clone()
+        && service.exists_by_email_all(email.to_owned()).await?
+        // check if the caller is actually changing the email
+        && email.to_string() != user.email
     {
         return Err(Responder::conflict(
             "You can't change your email to the given email",
         ));
     }
 
-    let am = user::ActiveModelEx::from(user_am);
-    let _ = service.update(am).await?;
+    let _ = service.update(user_dto).await?;
+
+    trx.commit().await?;
 
     Ok(NoContent)
 }

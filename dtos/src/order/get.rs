@@ -11,7 +11,7 @@ pub struct OrderGetDto {
     pub modified_at: DateTime,
 
     pub user_id: i32,
-    pub ammount: u32,
+    pub amount: u32,
     pub arrived_at: Option<DateTime>,
 
     pub product: ProductGetDto,
@@ -28,7 +28,7 @@ impl OrderGetDto {
             modified_at: m.modified_at,
 
             user_id: m.user_id,
-            ammount: m.ammount,
+            amount: m.amount,
             arrived_at: m.arrived_at,
 
             product: ProductGetDto::from_model_with_host(product, host)?,

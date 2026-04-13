@@ -321,7 +321,7 @@ OrderPostDto
 
 ```json
 {
-  "ammount": 1
+  "amount": 1
 }
 ```
 
@@ -342,7 +342,7 @@ OrderGetDto
   "created_at": "2000-01-05",
   "modified_at": "2000-01-05",
   "user_id": 1,
-  "ammount": 1,
+  "amount": 1,
   "arrived_at": "2000-01-05 | null",
   "product": {
     "id": 1,

@@ -8,6 +8,6 @@ pub struct OrderPostDto {
 
 impl From<OrderPostDto> for order::ActiveModelEx {
     fn from(c: OrderPostDto) -> order::ActiveModelEx {
-        order::ActiveModel::builder().set_ammount(c.ammount)
+        order::ActiveModel::builder().set_amount(c.ammount)
     }
 }

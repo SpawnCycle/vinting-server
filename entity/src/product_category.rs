@@ -4,11 +4,6 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "product_category")]
 pub struct Model {
-    pub created_at: DateTime,
-    pub modified_at: DateTime,
-    #[sea_orm(indexed)]
-    pub deleted_at: Option<DateTime>,
-
     // composite key
     #[sea_orm(primary_key, auto_increment = false)]
     pub product_id: i32,

@@ -6,7 +6,7 @@ edition = "2024"
 build = "./build.rs"
 
 [workspace]
-members = ["dtos", "entity", "services"]
+members = ["dtos", "entity", "migrations", "services"]
 
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }
@@ -21,26 +21,27 @@ redundant_pattern = "deny"
 cargo-build = "1.0.0"
 
 [workspace.dependencies]
-sea-orm = { version = "2.0.0-rc.30", features = [
+sea-orm = { version = "2.0.0-rc.37", features = [
   "runtime-tokio-rustls",
   "sqlx-sqlite",
   "macros",
   "entity-registry",
   "schema-sync",
 ] }
-anyhow = "1.0.100"
+anyhow = "1.0.102"
 thiserror = "2.0.18"
 serde = "1.0.228"
 log = "0.4.29"
-argon2 = "0.5.3"
+strum = { version = "0.28.0", features = ["derive"] }
+# all crates part of password_hash are undergoing a major version bump of the rand crate,
+# which breaks the api, notably it removes OsRng, which is a big part of how you currently hash passwords
+argon2 = "0.6.0-rc.8"
 
 [dependencies]
 entity = { path = "./entity" }
 dtos = { path = "./dtos" }
 services = { path = "./services" }
-
-rocket = { version = "0.5.1", features = ["secrets"] }
-tokio = { version = "1.49.0", features = ["full"] }
+migrations = { path = "./migrations" }
 
 sea-orm = { workspace = true }
 serde = { workspace = true }
@@ -48,3 +49,12 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
 argon2 = { workspace = true }
+strum = { workspace = true }
+
+rocket = { version = "0.5.1", features = ["secrets", "json"] }
+tokio = { version = "1.50.0", features = ["full"] }
+jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
+chrono = "0.4.44"
+dotenvy = "0.15.7"
+const-hex = "1.18.1"
+sha2 = "0.11.0"

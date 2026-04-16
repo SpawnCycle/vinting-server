@@ -1,0 +1,21 @@
+[package]
+name = "migrations"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+entity = { path = "../entity" }
+
+sea-orm = { workspace = true }
+sea-orm-migration = { version = "2.0.0-rc.37", features = [
+  "runtime-tokio-rustls",
+  "sqlx-sqlite",
+  "entity-registry",
+] }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+tokio = { version = "1.49.0", features = ["test-util", "macros"] }

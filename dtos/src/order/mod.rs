@@ -1,6 +1,5 @@
 pub mod get;
+pub mod post;
 
 // Moderator stuff
-// Do not use PostDto for regular users, you get the user_id from auth
-pub mod post;
 pub mod put;

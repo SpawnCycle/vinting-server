@@ -16,6 +16,7 @@ pub struct Model {
     #[sea_orm(indexed)]
     pub product_id: i32,
 
+    pub amount: u32,
     pub arrived_at: Option<DateTime>,
 
     #[sea_orm(belongs_to, from = "user_id", to = "id")]
@@ -25,3 +26,5 @@ pub struct Model {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+crate::active_actions!(ActiveModelEx);

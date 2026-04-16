@@ -1,10 +1,20 @@
-use entity::{category, image, product, tag};
-use serde::Deserialize;
+use entity::product::{self, ProductCondition, ProductSex};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+/// DOESN'T SET THE FOREIGN STUFF
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductPostDto {
     pub name: String,
     pub description: String,
+    pub price: u32,
+    pub size: String,
+    pub color: String,
+    pub brand: Option<String>,
+
+    pub condition: ProductCondition,
+    pub sex: ProductSex,
+
+    pub stock: u32,
 
     /// List of category ids
     pub categories: Vec<i32>,
@@ -14,30 +24,27 @@ pub struct ProductPostDto {
     pub tags: Vec<i32>,
 }
 
-impl From<ProductPostDto> for product::ActiveModelEx {
-    fn from(d: ProductPostDto) -> product::ActiveModelEx {
-        // user id is set outside of this function, because we get it from auth
-        let mut p = product::ActiveModel::builder()
-            .set_name(d.name)
-            .set_description(d.description);
-
-        // TODO: Test this
-        for c_id in d.categories {
-            p = p.add_category(category::ActiveModel::builder().set_id(c_id));
-        }
-
-        // TODO: Test this too
-        for i_id in d.images {
-            p = p.add_image(image::ActiveModel::builder().set_id(i_id));
-        }
-
-        // TODO: More tests
-        for t_id in d.tags {
-            p = p.add_tag(tag::ActiveModel::builder().set_id(t_id));
-        }
-
-        p
+impl ProductPostDto {
+    #[must_use]
+    pub fn into_active_model(self, uid: i32) -> product::ActiveModelEx {
+        product::ActiveModelEx::from(self).set_seller_id(uid)
     }
 }
 
-crate::active_actions!(product::ActiveModelEx);
+impl From<ProductPostDto> for product::ActiveModelEx {
+    // Doesn't set the foreign stuff
+    fn from(d: ProductPostDto) -> product::ActiveModelEx {
+        // user id is set outside of this function, because we get it from auth
+        product::ActiveModel::builder()
+            .set_name(d.name)
+            .set_condition(d.condition)
+            .set_price(d.price)
+            .set_sex(d.sex)
+            .set_size(d.size)
+            .set_color(d.color)
+            .set_brand(d.brand)
+            .set_description(d.description)
+            .set_overall_stock(d.stock)
+            .set_sold_stock(0u32)
+    }
+}

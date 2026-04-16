@@ -1,20 +1,43 @@
-// TODO: remove the allow(unused)
+use std::thread;
 
-#[allow(unused)]
-pub mod category;
-#[allow(unused)]
-pub mod image;
-#[allow(unused)]
-pub mod order;
-#[allow(unused)]
-pub mod product;
-#[allow(unused)]
-pub mod tag;
-#[allow(unused)]
-pub mod user;
+// utility stuff for serde
+pub mod email_string;
+pub mod limited_string;
 
-// TODO: dtos
+mod category;
+mod image;
+mod order;
+mod product;
+mod tag;
+mod user;
+
+pub use category::{get::*, post::*, put::*};
+pub use image::get::*;
+pub use order::{get::*, post::*, put::*};
+pub use product::{get::*, post::*, put::*};
+pub use tag::{get::*, post::*, put::*};
+pub use user::{get::*, post::*, put::*, whoami::*};
+
 // file structure: <model>/<method>.rs
+
+/// # Panics
+///
+/// panics if the configuration is incorrect
+#[must_use]
+pub fn get_argon_params() -> argon2::Params {
+    // SAFETY: Unless you have more cores than u32::MAX, this should never truncate
+    #[allow(clippy::cast_possible_truncation)]
+    let thread_num = (thread::available_parallelism().map_or(2, Into::into) as u32)
+        .max(argon2::Params::MIN_T_COST);
+    // More memory seems to make the hashing more costly in a linear fashion
+    argon2::Params::new(
+        1024,           // Memory cost
+        thread_num * 2, // Number of iterations
+        thread_num / 2, // Degree of parallelism
+        None,           // Output size
+    )
+    .expect("Argon2 configuration should be withing the allowed limits")
+}
 
 #[macro_export]
 macro_rules! from_models {
@@ -32,29 +55,4 @@ macro_rules! from_models {
             }
         }
     };
-}
-
-pub mod active_action {
-    pub trait ActiveAction {
-        #[must_use]
-        fn creating(self) -> Self;
-        #[must_use]
-        fn modifying(self) -> Self;
-    }
-
-    #[macro_export]
-    macro_rules! active_actions {
-        ($am:path) => {
-            impl $crate::active_action::ActiveAction for $am {
-                fn creating(self) -> Self {
-                    let now = sea_orm::sea_query::prelude::Utc::now().naive_local();
-                    self.set_created_at(now).set_modified_at(now)
-                }
-                fn modifying(self) -> Self {
-                    let now = sea_orm::sea_query::prelude::Utc::now().naive_local();
-                    self.set_modified_at(now)
-                }
-            }
-        };
-    }
 }

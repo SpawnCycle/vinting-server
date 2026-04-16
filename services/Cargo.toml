@@ -12,4 +12,3 @@ sea-orm = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "1.49.0", features = ["test-util", "macros"] }
-sea-orm = { workspace = true, features = ["mock"] }

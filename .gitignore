@@ -1,6 +1,16 @@
+# rust build output
 /target
+# client output
 /web
+# images directory
+/img
+# nice to have, .cookie.txt keeps sneaking into the repo
+/ignore
 
 # db files
 *.db
 *.sqlite
+
+# for some reason git likes to sneak it in from time to time
+.env
+.env.production

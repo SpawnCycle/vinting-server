@@ -1,15 +1,13 @@
 use entity::order;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderPostDto {
-    pub user_id: i32,
+    pub ammount: u32,
 }
 
 impl From<OrderPostDto> for order::ActiveModelEx {
     fn from(c: OrderPostDto) -> order::ActiveModelEx {
-        order::ActiveModel::builder().set_user_id(c.user_id)
+        order::ActiveModel::builder().set_amount(c.ammount)
     }
 }
-
-crate::active_actions!(order::ActiveModelEx);

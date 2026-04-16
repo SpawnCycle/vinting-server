@@ -1,4 +1,8 @@
-use std::{fs, ops::Not, process::Command};
+use std::{
+    fs,
+    ops::Not,
+    process::{self, Command},
+};
 
 fn main() {
     // probably not needed in the newer rust versions
@@ -7,14 +11,21 @@ fn main() {
     cargo_build::rerun_if_changed("./.git/HEAD");
     // rerun if we're on a different submodule commit
     cargo_build::rerun_if_changed("./.git/modules/vinting-web/HEAD");
-    // this will run the build script if the directory is not present
-    cargo_build::rerun_if_changed("./web/");
+    // reruns if this doesn't exist
+    cargo_build::rerun_if_changed("./web/index.html");
+
+    // exits early to not touch anything npm related,
+    // good for testing
+    if option_env!("NO_WEB").is_some() {
+        return;
+    }
 
     // npm gives a rather cryptic error if this happens
     if !fs::exists("./vinting-web/package.json").unwrap_or(false) {
         cargo_build::error(
             "Git repo cloned without submodules, please clone the repo with the --recursive flag",
         );
+        process::exit(1);
     }
 
     let npm = option_env!("NPM").unwrap_or("npm");
@@ -23,12 +34,18 @@ fn main() {
     let build_out = rebuild || !fs::exists("./web/").unwrap_or(false);
     let install_deps = rebuild || !fs::exists("./vinting-web/node_modules/").unwrap_or(false);
 
+    // Don't run checks if not necessary, particularly useful for windows,
+    // where by default npm is not in your path if you install it through scoop or choco
+    if !build_out && !install_deps && !rebuild {
+        return;
+    }
+
     // check if npm is present in $PATH and is executable
     // spawning the process won't error if it's executable
     // npm will exit with an error with these args, but we don't check that
     Command::new(npm).spawn().is_err().then(|| {
         cargo_build::error(&format!("'{npm}' is not in your $PATH"));
-        std::process::exit(1);
+        process::exit(1);
     });
 
     if install_deps {

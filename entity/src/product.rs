@@ -1,4 +1,6 @@
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -11,13 +13,28 @@ pub struct Model {
     #[sea_orm(indexed)]
     pub deleted_at: Option<DateTime>,
 
+    #[sea_orm(indexed)]
     pub name: String,
+    #[sea_orm(indexed)]
     pub description: String,
+    #[sea_orm(indexed)]
+    pub brand: Option<String>,
+
+    pub price: u32,
+
+    pub overall_stock: u32,
+    pub sold_stock: u32,
+
+    pub size: String,
+    pub color: String,
+
+    pub condition: ProductCondition,
+    pub sex: ProductSex,
 
     #[sea_orm(indexed)]
-    pub user_id: i32,
+    pub seller_id: i32,
 
-    #[sea_orm(belongs_to, from = "user_id", to = "id")]
+    #[sea_orm(belongs_to, from = "seller_id", to = "id")]
     pub user: HasOne<super::user::Entity>,
 
     #[sea_orm(has_many)]
@@ -40,3 +57,74 @@ pub struct Model {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+crate::active_actions!(ActiveModelEx);
+
+// Unholy stuff below
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    DeriveActiveEnum,
+    Display,
+    EnumString,
+    Serialize,
+    Deserialize,
+)]
+#[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
+#[serde(try_from = "&str", into = "String")]
+pub enum ProductCondition {
+    #[sea_orm(string_value = "New")]
+    #[strum(to_string = "New")]
+    New,
+    #[sea_orm(string_value = "Like new")]
+    #[strum(to_string = "Like new")]
+    LikeNew,
+    #[sea_orm(string_value = "Used")]
+    #[strum(to_string = "Used")]
+    Used,
+    #[sea_orm(string_value = "Heavily used")]
+    #[strum(to_string = "Heavily used")]
+    HeavilyUsed,
+}
+
+impl From<ProductCondition> for String {
+    fn from(v: ProductCondition) -> Self {
+        v.to_string()
+    }
+}
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    EnumIter,
+    DeriveActiveEnum,
+    DeriveDisplay,
+    EnumString,
+    Serialize,
+    Deserialize,
+)]
+#[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
+#[serde(try_from = "&str", into = "String")]
+pub enum ProductSex {
+    #[sea_orm(string_value = "Male")]
+    #[strum(to_string = "Male")]
+    Male,
+    #[sea_orm(string_value = "Female")]
+    #[strum(to_string = "Female")]
+    Female,
+    #[sea_orm(string_value = "Unisex")]
+    #[strum(to_string = "Unisex")]
+    Unisex,
+}
+
+impl From<ProductSex> for String {
+    fn from(v: ProductSex) -> Self {
+        v.to_string()
+    }
+}

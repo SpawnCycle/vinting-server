@@ -1,17 +1,22 @@
 use entity::user;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+use crate::{email_string::EmailString, limited_string::LimitedString};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserPostDto {
-    name: String,
-    password: String,
+    pub name: String,
+    pub email: EmailString,
+    pub password: LimitedString<50, 8>,
 }
 
 impl From<UserPostDto> for user::ActiveModelEx {
-    // doesn't set password_hash
     fn from(d: UserPostDto) -> Self {
-        user::ActiveModel::builder().set_name(d.name)
+        let pwd_hash = super::hash_password(&d.password);
+
+        user::ActiveModel::builder()
+            .set_name(d.name)
+            .set_email(d.email)
+            .set_password_hash(pwd_hash)
     }
 }
-
-crate::active_actions!(user::ActiveModelEx);

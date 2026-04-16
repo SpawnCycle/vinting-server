@@ -1,9 +1,9 @@
 use entity::tag;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TagPostDto {
-    name: String,
+    pub name: String,
 }
 
 impl From<TagPostDto> for tag::ActiveModelEx {
@@ -11,5 +11,3 @@ impl From<TagPostDto> for tag::ActiveModelEx {
         tag::ActiveModel::builder().set_name(t.name)
     }
 }
-
-crate::active_actions!(tag::ActiveModelEx);

@@ -5,5 +5,7 @@ pub use super::product::Entity as Product;
 pub use super::product_category::Entity as ProductCategory;
 pub use super::product_image::Entity as ProductImage;
 pub use super::product_tag::Entity as ProductTag;
+pub use super::role::Entity as Role;
 pub use super::tag::Entity as Tag;
 pub use super::user::Entity as User;
+pub use super::user_role::Entity as UserRole;

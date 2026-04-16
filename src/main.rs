@@ -1,16 +1,15 @@
-mod database;
-mod file_server;
-mod routable_file_server;
-mod routes;
-
-pub use entity; // for schema registry
-
-use crate::{database::DatabaseFairing, file_server::FileServerFairing, routes::AllRouteFairing};
+use vinting_server::{
+    config, constants::LazyProcFairing, database::DatabaseFairing, dotenv::DotenvFairing,
+    file_server::FileServerFairing, responder::CatcherFairing, routes::AllRouteFairing,
+};
 
 #[rocket::launch]
 fn launch() -> _ {
-    rocket::build()
+    config::rocket()
+        .attach(DotenvFairing)
+        .attach(LazyProcFairing)
         .attach(FileServerFairing)
         .attach(AllRouteFairing)
         .attach(DatabaseFairing)
+        .attach(CatcherFairing)
 }

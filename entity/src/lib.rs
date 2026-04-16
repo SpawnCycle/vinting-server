@@ -7,8 +7,43 @@ pub mod product;
 pub mod product_category;
 pub mod product_image;
 pub mod product_tag;
+pub mod role;
 pub mod tag;
 pub mod user;
+pub mod user_role;
+
+pub mod active_action {
+    pub trait ActiveAction {
+        #[must_use]
+        fn creating(self) -> Self;
+        #[must_use]
+        fn modifying(self) -> Self;
+        #[must_use]
+        fn deleting(self) -> Self;
+    }
+
+    #[macro_export]
+    macro_rules! active_actions {
+        ($am:path) => {
+            impl $crate::active_action::ActiveAction for $am {
+                fn creating(self) -> Self {
+                    let now = sea_orm::sea_query::prelude::Utc::now().naive_local();
+                    self.set_created_at(now)
+                        .set_modified_at(now)
+                        .set_deleted_at(None)
+                }
+                fn modifying(self) -> Self {
+                    let now = sea_orm::sea_query::prelude::Utc::now().naive_local();
+                    self.set_modified_at(now)
+                }
+                fn deleting(self) -> Self {
+                    let now = sea_orm::sea_query::prelude::Utc::now().naive_local();
+                    self.modifying().set_deleted_at(now)
+                }
+            }
+        };
+    }
+}
 
 #[cfg(test)]
 mod test {

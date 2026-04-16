@@ -1,10 +1,6 @@
-use entity::product;
+use entity::product::{self, ProductCondition, ProductSex};
 use sea_orm::prelude::DateTime;
-use serde::Serialize;
-use services::{
-    category_service::CategoryService, image_service::ImageService, service_trait::ServiceTrait,
-    tag_service::TagService,
-};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     category::get::CategoryGetDto, image::get::ImageGetDto, tag::get::TagGetDto,
@@ -12,7 +8,7 @@ use crate::{
 };
 
 /// Can only convert from `ModelEx` with `user`, `categories`, `tags`, and `images` loaded
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProductGetDto {
     pub id: i32,
     pub created_at: DateTime,
@@ -21,50 +17,68 @@ pub struct ProductGetDto {
     pub name: String,
     pub description: String,
 
+    pub price: u32,
+    pub size: String,
+    pub brand: Option<String>,
+    pub color: String,
+
+    pub starting_stock: u32,
+    pub available_stock: u32,
+    pub has_stock: bool,
+
+    pub condition: ProductCondition,
+    pub sex: ProductSex,
+
     pub user: UserGetDto,
     pub categories: Vec<CategoryGetDto>,
     pub tags: Vec<TagGetDto>,
     pub images: Vec<ImageGetDto>,
 }
 
-impl From<product::ModelEx> for ProductGetDto {
-    fn from(m: product::ModelEx) -> Self {
-        // TODO: Write tests for endpoints so we don't find out in prod that these are not set
-        assert!(m.categories.is_loaded());
-        assert!(m.tags.is_loaded());
-        assert!(m.images.is_loaded());
-        assert!(m.user.is_loaded());
+impl ProductGetDto {
+    pub fn from_model_with_host(m: product::ModelEx, host: &str) -> Option<Self> {
+        if !m.categories.is_loaded()
+            || !m.tags.is_loaded()
+            || !m.images.is_loaded()
+            || !m.user.is_loaded()
+        {
+            return None;
+        }
 
-        let user = m.user.unwrap();
+        let user = m.user.into_option()?;
+        let available = m.overall_stock.saturating_sub(m.sold_stock);
 
-        Self {
+        Some(Self {
             id: m.id,
             created_at: m.created_at,
             modified_at: m.modified_at,
 
             name: m.name,
             description: m.description,
+            available_stock: available,
+            has_stock: available > 0,
+            starting_stock: m.overall_stock,
+
+            price: m.price,
+            size: m.size,
+            brand: m.brand,
+            condition: m.condition,
+            sex: m.sex,
+            color: m.color,
 
             user: UserGetDto::from(user),
 
             categories: m
                 .categories
                 .into_iter()
-                .filter(|m| CategoryService::iter_filter(m.clone()))
                 .map(CategoryGetDto::from)
                 .collect::<Vec<_>>(),
             images: m
                 .images
                 .into_iter()
-                .filter(|m| ImageService::iter_filter(m.clone()))
-                .map(ImageGetDto::from)
+                .map(|m| ImageGetDto::from_model_with_host(m, host))
                 .collect::<Vec<_>>(),
-            tags: m
-                .tags
-                .into_iter()
-                .filter(|m| TagService::iter_filter(m.clone()))
-                .map(TagGetDto::from)
-                .collect::<Vec<_>>(),
-        }
+            tags: m.tags.into_iter().map(TagGetDto::from).collect::<Vec<_>>(),
+        })
     }
 }

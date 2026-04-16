@@ -7,8 +7,8 @@ Vinting is a REST api school project that uses a relational database and has a r
 Features:
 
 - [x] Relational database
-- [ ] Rest api
-- [ ] Responsive frontend (In progress)
+- [x] Rest api
+- [x] Responsive frontend
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ REBUILD=1 cargo build
 Or if you don't want to build the client at all
 
 ```sh
-REBUILD=1 cargo build
+NO_WEB=1 cargo build
 ```
 
 ## Running the app

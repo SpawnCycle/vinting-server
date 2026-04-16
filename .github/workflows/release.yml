@@ -20,7 +20,7 @@ jobs:
     name: create-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Get the release version from the tag
         if: env.VERSION == ''
         run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
@@ -97,6 +97,12 @@ jobs:
         run: |
           echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
           echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+
+      - name: Setup Node.js for windows
+        if: startsWith(matrix.os, 'windows')
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
 
       - name: Build release binary
         shell: bash

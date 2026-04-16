@@ -51,7 +51,7 @@ log = { workspace = true }
 argon2 = { workspace = true }
 strum = { workspace = true }
 
-rocket = { version = "0.5.1", features = ["secrets", "json"] }
+rocket = { version = "0.5.1", features = ["json"] }
 tokio = { version = "1.50.0", features = ["full"] }
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 chrono = "0.4.44"

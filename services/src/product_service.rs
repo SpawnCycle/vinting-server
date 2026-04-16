@@ -1,21 +1,13 @@
-use crate::service_trait::{ServiceFilter, ServiceTrait};
+use crate::service_trait::{ServiceConnection, ServiceFilter, ServiceTrait};
 use entity::{prelude::*, product};
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityLoaderTrait,
-    EntityTrait, PrimaryKeyTrait, QueryFilter, TransactionTrait,
+    ColumnTrait, Condition, DbConn, DbErr, EntityLoaderTrait, EntityTrait, PrimaryKeyTrait,
+    QueryFilter,
 };
 
-// TODO: if possible fix the service types now having a mandatory type
-pub struct ProductService<'a, C = DbConn>(pub &'a C)
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>;
+pub struct ProductService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
-impl<C> ProductService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> ProductService<'_, C> {
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn load_by_id(&self, id: i32) -> Result<Option<product::ModelEx>, DbErr> {
@@ -119,11 +111,7 @@ where
     }
 }
 
-impl<C> ServiceTrait for ProductService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> ServiceTrait for ProductService<'_, C> {
     type Entity = Product;
     type Connection = C;
 

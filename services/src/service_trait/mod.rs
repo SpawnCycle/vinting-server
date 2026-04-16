@@ -1,12 +1,14 @@
+mod connection;
 mod filter;
 
-use entity::active_action::ActiveAction;
+pub use connection::*;
 pub use filter::*;
 
+use entity::active_action::ActiveAction;
+
 use sea_orm::{
-    ActiveModelTrait, Condition, ConnectionTrait, DatabaseTransaction, DbErr, EntityTrait,
-    PrimaryKeyTrait, QueryFilter, Select, SelectExt, TransactionTrait,
-    prelude::async_trait::async_trait,
+    ActiveModelTrait, Condition, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter, Select,
+    SelectExt, TransactionTrait, prelude::async_trait::async_trait,
 };
 
 /// trait for getting tables via service
@@ -24,7 +26,7 @@ use sea_orm::{
 #[async_trait]
 pub trait ServiceTrait {
     type Entity: EntityTrait;
-    type Connection: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction>;
+    type Connection: ServiceConnection;
 
     fn default_filters() -> Condition;
     fn get_db(&self) -> &Self::Connection;

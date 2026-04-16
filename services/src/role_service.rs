@@ -1,20 +1,10 @@
-use crate::service_trait::ServiceTrait;
+use crate::service_trait::{ServiceConnection, ServiceTrait};
 use entity::role;
-use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
-    PrimaryKeyTrait, TransactionTrait,
-};
+use sea_orm::{ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait};
 
-pub struct RoleService<'a, C = DbConn>(pub &'a C)
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>;
+pub struct RoleService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
-impl<C> ServiceTrait for RoleService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> ServiceTrait for RoleService<'_, C> {
     type Entity = role::Entity;
     type Connection = C;
 

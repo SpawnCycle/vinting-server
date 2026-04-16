@@ -1,20 +1,15 @@
-use crate::service_trait::ServiceTrait;
+use crate::service_trait::{ServiceConnection, ServiceTrait};
 use entity::{active_action::ActiveAction, category};
 use sea_orm::{
     ActiveValue::{NotSet, Set, Unchanged},
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
-    PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter, SelectExt,
+    TransactionTrait,
     prelude::async_trait::async_trait,
 };
 
-pub struct CategoryService<'a, C = DbConn>(pub &'a C)
-where
-    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send;
+pub struct CategoryService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
-impl<C> CategoryService<'_, C>
-where
-    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send,
-{
+impl<C: ServiceConnection> CategoryService<'_, C> {
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn get_by_name<S>(&self, name: S) -> Result<Option<category::Model>, DbErr>
@@ -67,10 +62,7 @@ where
 }
 
 #[async_trait]
-impl<C> ServiceTrait for CategoryService<'_, C>
-where
-    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send,
-{
+impl<C: ServiceConnection> ServiceTrait for CategoryService<'_, C> {
     type Entity = category::Entity;
     type Connection = C;
 

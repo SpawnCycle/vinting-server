@@ -1,13 +1,11 @@
-use crate::service_trait::ServiceTrait;
+use crate::service_trait::{ServiceConnection, ServiceTrait};
 use entity::{order, prelude::*};
 use sea_orm::{
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityLoaderTrait,
-    EntityTrait, PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
+    ColumnTrait, Condition, DbConn, DbErr, EntityLoaderTrait, EntityTrait, PrimaryKeyTrait,
+    QueryFilter, SelectExt,
 };
 
-pub struct OrderService<'a, C = DbConn>(pub &'a C)
-where
-    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send;
+pub struct OrderService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
 fn load_order() -> order::EntityLoader {
     Order::load()
@@ -17,10 +15,7 @@ fn load_order() -> order::EntityLoader {
         .with((Product, Image))
 }
 
-impl<C> OrderService<'_, C>
-where
-    C: ConnectionTrait + TransactionTrait<Transaction = DatabaseTransaction> + Send,
-{
+impl<C: ServiceConnection> OrderService<'_, C> {
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn load_all(&self) -> Result<Vec<order::ModelEx>, DbErr> {
@@ -92,11 +87,7 @@ where
     }
 }
 
-impl<C> ServiceTrait for OrderService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> ServiceTrait for OrderService<'_, C> {
     type Entity = order::Entity;
     type Connection = C;
 

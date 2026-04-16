@@ -1,22 +1,15 @@
-use crate::service_trait::ServiceTrait;
+use crate::service_trait::{ServiceConnection, ServiceTrait};
 use entity::{active_action::ActiveAction, user};
 use sea_orm::{
     ActiveValue::{NotSet, Set, Unchanged},
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
-    PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter, SelectExt,
+    TransactionTrait,
     prelude::async_trait::async_trait,
 };
 
-pub struct UserService<'a, C = DbConn>(pub &'a C)
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>;
+pub struct UserService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
-impl<C> UserService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> UserService<'_, C> {
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn get_by_email<S>(&self, email: S) -> Result<Option<user::Model>, DbErr>
@@ -57,11 +50,7 @@ where
 }
 
 #[async_trait]
-impl<C> ServiceTrait for UserService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> ServiceTrait for UserService<'_, C> {
     type Entity = user::Entity;
     type Connection = C;
 

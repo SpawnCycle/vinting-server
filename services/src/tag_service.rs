@@ -1,22 +1,15 @@
-use crate::service_trait::ServiceTrait;
+use crate::service_trait::{ServiceConnection, ServiceTrait};
 use entity::{active_action::ActiveAction, tag};
 use sea_orm::{
     ActiveValue::{NotSet, Set, Unchanged},
-    ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction, DbConn, DbErr, EntityTrait,
-    PrimaryKeyTrait, QueryFilter, SelectExt, TransactionTrait,
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter, SelectExt,
+    TransactionTrait,
     prelude::async_trait::async_trait,
 };
 
-pub struct TagService<'a, C = DbConn>(pub &'a C)
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>;
+pub struct TagService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
-impl<C> TagService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> TagService<'_, C> {
     /// # Errors
     /// Returns the error produced by sea-orm
     pub async fn exists_by_name<S>(&self, name: S) -> Result<bool, DbErr>
@@ -65,11 +58,7 @@ where
 }
 
 #[async_trait]
-impl<C> ServiceTrait for TagService<'_, C>
-where
-    C: ConnectionTrait + Send,
-    C: TransactionTrait<Transaction = DatabaseTransaction>,
-{
+impl<C: ServiceConnection> ServiceTrait for TagService<'_, C> {
     type Entity = tag::Entity;
     type Connection = C;
 

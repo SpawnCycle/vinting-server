@@ -92,6 +92,13 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: sudo apt-get install -y gcc-aarch64-linux-gnu
 
+      - name: Set aarch64 linker
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          mkdir -p .cargo
+          echo '[target.aarch64-unknown-linux-gnu]' >> .cargo/config.toml
+          echo 'linker = "aarch64-linux-gnu-gcc"' >> .cargo/config.toml
+
       - name: Set target variables
         shell: bash
         run: |
@@ -103,6 +110,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
+
+      - name: Set NPM env
+        shell: bash
+        run: echo "NPM=$(which npm)" >> $GITHUB_ENV
 
       - name: Build release binary
         shell: bash
@@ -152,4 +163,4 @@ jobs:
         shell: bash
         run: |
           version="${{ needs.create-release.outputs.version }}"
-          gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }}
+          gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }} --clobber

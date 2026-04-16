@@ -1,10 +1,6 @@
 use entity::product::{self, ProductCondition, ProductSex};
-use sea_orm::{DbConn, prelude::DateTime};
+use sea_orm::prelude::DateTime;
 use serde::{Deserialize, Serialize};
-use services::{
-    category_service::CategoryService, image_service::ImageService, service_trait::ServiceTrait,
-    tag_service::TagService,
-};
 
 use crate::{
     category::get::CategoryGetDto, image::get::ImageGetDto, tag::get::TagGetDto,
@@ -75,21 +71,14 @@ impl ProductGetDto {
             categories: m
                 .categories
                 .into_iter()
-                .filter(|m| CategoryService::<DbConn>::iter_filter(m.clone()))
                 .map(CategoryGetDto::from)
                 .collect::<Vec<_>>(),
             images: m
                 .images
                 .into_iter()
-                .filter(|m| ImageService::<DbConn>::iter_filter(m.clone()))
                 .map(|m| ImageGetDto::from_model_with_host(m, host))
                 .collect::<Vec<_>>(),
-            tags: m
-                .tags
-                .into_iter()
-                .filter(|m| TagService::<DbConn>::iter_filter(m.clone()))
-                .map(TagGetDto::from)
-                .collect::<Vec<_>>(),
+            tags: m.tags.into_iter().map(TagGetDto::from).collect::<Vec<_>>(),
         })
     }
 }

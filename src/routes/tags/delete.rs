@@ -1,12 +1,14 @@
+use entity::product_tag;
 use rocket::{State, delete, response::status::NoContent};
-use sea_orm::DbConn;
+use sea_orm::{ColumnTrait, DbConn, EntityTrait, QueryFilter, TransactionTrait};
 use services::{service_trait::ServiceTrait, tag_service::TagService};
 
 use crate::responder::Responder;
 
 #[delete("/<id>")]
 pub async fn one(id: i32, db: &State<DbConn>) -> Result<NoContent, Responder> {
-    let db = db.inner();
+    let trx = db.begin().await?;
+    let db = &trx;
     let service = TagService(db);
 
     if !service.exists_by_id(id).await? {
@@ -14,6 +16,13 @@ pub async fn one(id: i32, db: &State<DbConn>) -> Result<NoContent, Responder> {
     }
 
     let _ = service.delete_by_id(id).await?;
+
+    product_tag::Entity::delete_many()
+        .filter(product_tag::Column::TagId.eq(id))
+        .exec(db)
+        .await?;
+
+    trx.commit().await?;
 
     Ok(NoContent)
 }

@@ -1,5 +1,6 @@
 pub mod category;
 pub mod tag;
+pub mod user;
 
 use anyhow::anyhow;
 use dtos::UserPostDto;

@@ -95,6 +95,10 @@
   Requires: Logged in
   Accepts: `ImageForm`
   Returns: `ImageDto`
+- DELETE /api/images/{id}:
+  Requires: Logged in && (you own the image || Admin role)
+  Accepts: NoContent
+  Returns: NoContent
 - GET /api/images
   Accepts: NoContent
   Returns: `ImageDto[]`

@@ -7,6 +7,9 @@
 # nice to have, .cookie.txt keeps sneaking into the repo
 /ignore
 
+# this is where the logs go, woulnd't want that in the repo
+/logs
+
 # db files
 *.db
 *.sqlite

@@ -5,6 +5,8 @@ use vinting_server::{
 
 #[rocket::launch]
 fn launch() -> _ {
+    let _ = config::logger().expect("Couldn't properly initialize logging");
+
     config::rocket()
         .attach(DotenvFairing)
         .attach(LazyProcFairing)

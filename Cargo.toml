@@ -28,6 +28,7 @@ sea-orm = { version = "2.0.0-rc.38", features = [
   "entity-registry",
   "schema-sync",
 ] }
+tokio = { version = "1.52.1", features = ["full"] }
 anyhow = "1.0.102"
 thiserror = "2.0.18"
 serde = "1.0.228"
@@ -50,9 +51,9 @@ thiserror = { workspace = true }
 log = { workspace = true }
 argon2 = { workspace = true }
 strum = { workspace = true }
+tokio = { workspace = true }
 
 rocket = { version = "0.5.1", features = ["json"] }
-tokio = { version = "1.50.0", features = ["full"] }
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 chrono = "0.4.44"
 dotenvy = "0.15.7"

@@ -18,6 +18,7 @@ use log4rs::{
 const TRIGGER_FILE_SIZE: u64 = 10 * 1024 * 1024;
 const FILE_PATH: &str = "./logs/vinting.log";
 const ROLLER_PATTERN: &str = "./logs/archive/vinting.{}.log";
+const ARCHIVE_COUNT: u32 = 10;
 
 pub fn logger() -> anyhow::Result<log4rs::Handle> {
     let file_level = if cfg!(test) {
@@ -36,7 +37,7 @@ pub fn logger() -> anyhow::Result<log4rs::Handle> {
         .build();
 
     let trigger = SizeTrigger::new(TRIGGER_FILE_SIZE);
-    let roller = FixedWindowRoller::builder().build(ROLLER_PATTERN, 5)?;
+    let roller = FixedWindowRoller::builder().build(ROLLER_PATTERN, ARCHIVE_COUNT)?;
     let policy = CompoundPolicy::new(Box::new(trigger), Box::new(roller));
 
     let logfile = RollingFileAppender::builder()
@@ -68,7 +69,9 @@ mod tests {
 
     #[test]
     fn logger_set_up() -> anyhow::Result<()> {
-        let _ = logger()?;
+        let res = logger();
+
+        assert!(res.is_ok());
 
         Ok(())
     }

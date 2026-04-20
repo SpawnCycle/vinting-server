@@ -5,10 +5,12 @@ edition = "2024"
 
 [dependencies]
 entity = { path = "../entity" }
+
 serde = { workspace = true }
 sea-orm = { workspace = true }
 argon2 = { workspace = true }
 anyhow = { workspace = true }
+
 regex = "1.12.3"
 
 [lints]

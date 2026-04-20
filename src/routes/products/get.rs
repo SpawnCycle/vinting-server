@@ -26,7 +26,7 @@ pub struct ProductFilter {
     query: Option<String>,
     gender: Option<String>,
     size: Option<String>,
-    color: Option<String>,
+    colors: Option<Vec<String>>,
     condition: Option<String>,
     categories: Option<Vec<String>>,
     sort_by: Option<ProductSort>,
@@ -136,8 +136,12 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
         q = q.filter(product::Column::Size.eq(s));
     }
 
-    if let Some(c) = filters.color {
-        q = q.filter(product::Column::Color.eq(c));
+    if let Some(c) = filters.colors {
+        let mut cond = Condition::any();
+        for color in c {
+            cond = cond.add(product::Column::Color.eq(color));
+        }
+        q = q.filter(cond);
     }
 
     if let Some(c) = filters.condition {

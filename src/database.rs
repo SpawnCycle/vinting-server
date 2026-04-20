@@ -74,6 +74,8 @@ async fn register_admin(db: &DbConn) -> Result<(), DbErr> {
 
     let _ = am.save(db).await?;
 
+    log::info!("Successfully initialized db");
+
     Ok(())
 }
 

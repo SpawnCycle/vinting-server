@@ -25,9 +25,9 @@ enum ProductSort {
 pub struct ProductFilter {
     query: Option<String>,
     gender: Option<String>,
-    size: Option<String>,
-    color: Option<String>,
-    condition: Option<String>,
+    sizes: Option<Vec<String>>,
+    colors: Option<Vec<String>>,
+    conditions: Option<Vec<String>>,
     categories: Option<Vec<String>>,
     sort_by: Option<ProductSort>,
     #[field(default = false)]
@@ -132,16 +132,28 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
         q = q.filter(product::Column::Sex.eq(g));
     }
 
-    if let Some(s) = filters.size {
-        q = q.filter(product::Column::Size.eq(s));
+    if let Some(s) = filters.sizes {
+        let mut cond = Condition::any();
+        for size in s {
+            cond = cond.add(product::Column::Size.eq(size));
+        }
+        q = q.filter(cond);
     }
 
-    if let Some(c) = filters.color {
-        q = q.filter(product::Column::Color.eq(c));
+    if let Some(c) = filters.colors {
+        let mut cond = Condition::any();
+        for color in c {
+            cond = cond.add(product::Column::Color.eq(color));
+        }
+        q = q.filter(cond);
     }
 
-    if let Some(c) = filters.condition {
-        q = q.filter(product::Column::Condition.eq(c));
+    if let Some(c) = filters.conditions {
+        let mut cond = Condition::any();
+        for condition in c {
+            cond = cond.add(product::Column::Condition.eq(condition));
+        }
+        q = q.filter(cond);
     }
 
     if let Some(c) = filters.categories {

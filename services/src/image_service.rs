@@ -1,8 +1,22 @@
 use crate::service_trait::{ServiceConnection, ServiceTrait};
 use entity::image;
-use sea_orm::{ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait};
+use sea_orm::{
+    ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter, SelectExt,
+};
 
 pub struct ImageService<'a, C: ServiceConnection = DbConn>(pub &'a C);
+
+impl<C: ServiceConnection> ImageService<'_, C> {
+    /// # Errors
+    /// Returns the error produced by sea-orm
+    pub async fn exists_by_path(&self, path: &str) -> Result<bool, DbErr> {
+        image::Entity::find()
+            .filter(Self::default_filters())
+            .filter(image::Column::Path.eq(path))
+            .exists(self.get_db())
+            .await
+    }
+}
 
 impl<C: ServiceConnection> ServiceTrait for ImageService<'_, C> {
     type Entity = image::Entity;

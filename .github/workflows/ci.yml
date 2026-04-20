@@ -1,4 +1,4 @@
-name: Cargo build & test
+name: Rust ci
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout submodule
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
       - name: Build project
@@ -27,7 +27,7 @@ jobs:
       NO_WEB: 1
     steps:
       - name: Checkout submodule
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
       - name: Build project
@@ -38,7 +38,7 @@ jobs:
       NO_WEB: 1
     steps:
       - name: Checkout submodule
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
       - name: Run tests

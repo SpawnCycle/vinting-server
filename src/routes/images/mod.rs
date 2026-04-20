@@ -1,6 +1,4 @@
-//! TODO:
-//! DELETE?
-
+mod delete;
 mod get;
 mod post;
 
@@ -22,7 +20,10 @@ impl Fairing for ImagesFairing {
     }
 
     async fn on_ignite(&self, r: Rocket<Build>) -> fairing::Result {
-        let r = r.mount("/api/images/", routes![post::upload, get::all, get::one]);
+        let r = r.mount(
+            "/api/images/",
+            routes![post::upload, get::all, get::one, delete::one],
+        );
         Ok(r)
     }
 }

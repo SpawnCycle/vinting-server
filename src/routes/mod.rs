@@ -56,6 +56,8 @@ impl Fairing for AllRouteFairing {
             .attach(ProductFairing)
             .attach(OrderFairing);
 
+        log::info!("Successfully added routes");
+
         Ok(r)
     }
 }

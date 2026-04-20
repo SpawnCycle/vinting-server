@@ -1,6 +1,6 @@
 [package]
 name = "vinting-server"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 build = "./build.rs"
@@ -21,13 +21,14 @@ redundant_pattern = "deny"
 cargo-build = "1.0.0"
 
 [workspace.dependencies]
-sea-orm = { version = "2.0.0-rc.37", features = [
+sea-orm = { version = "2.0.0-rc.38", features = [
   "runtime-tokio-rustls",
   "sqlx-sqlite",
   "macros",
   "entity-registry",
   "schema-sync",
 ] }
+tokio = { version = "1.52.1", features = ["full"] }
 anyhow = "1.0.102"
 thiserror = "2.0.18"
 serde = "1.0.228"
@@ -50,11 +51,22 @@ thiserror = { workspace = true }
 log = { workspace = true }
 argon2 = { workspace = true }
 strum = { workspace = true }
+tokio = { workspace = true }
 
-rocket = { version = "0.5.1", features = ["secrets", "json"] }
-tokio = { version = "1.50.0", features = ["full"] }
+rocket = { version = "0.5.1", features = ["json"] }
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 chrono = "0.4.44"
 dotenvy = "0.15.7"
 const-hex = "1.18.1"
 sha2 = "0.11.0"
+log4rs = "1.4.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+
+# common option for release binaries
+panic = "abort"
+# compile times will be even longer with 1 codegen unit (sorry)
+codegen-units = 1

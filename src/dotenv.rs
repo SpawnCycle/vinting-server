@@ -33,6 +33,8 @@ impl Fairing for DotenvFairing {
             return Err(r);
         }
 
+        log::info!("Successfully initialized global variables");
+
         Ok(r)
     }
 }

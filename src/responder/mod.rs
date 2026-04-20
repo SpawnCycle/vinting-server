@@ -10,11 +10,11 @@ use std::{error::Error, fmt::Display, io};
 use chrono::{DateTime, Utc};
 use rocket::Responder;
 use sea_orm::DbErr;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::http_err;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorMessage {
     code: u16,
     timestamp: DateTime<Utc>,
@@ -32,6 +32,7 @@ impl ErrorMessage {
     }
 }
 
+/// This struct, in reality has a serialized `ErrorMessage`
 #[derive(Debug, Clone, Serialize, Responder)]
 pub enum Responder {
     #[response(status = 500)]
@@ -74,6 +75,8 @@ impl Responder {
     }
 
     pub fn server_error(msg: impl ToString) -> Self {
+        let msg = msg.to_string();
+        log::error!("Internal error: {msg}");
         http_err!(ServerError, 500, msg)
     }
 

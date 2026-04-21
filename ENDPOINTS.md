@@ -29,9 +29,9 @@
   Returns: `ProductGetDto[]`
   URI Options:
   - gender: `string` (optional)
-  - size: `string` (optional)
-  - color: `string` (optional)
-  - condition: `string` (optional)
+  - sizes: `string[]` (optional)
+  - colors: `string[]` (optional)
+  - conditions: `string[]` (optional)
   - categories: `string[]` (optional)
   - order_by: `"date" | "price"` (optional)
   - asc: `boolean` (default: false)

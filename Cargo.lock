@@ -961,7 +961,7 @@ checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
 name = "dtos"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "argon2",
@@ -1050,7 +1050,7 @@ dependencies = [
 
 [[package]]
 name = "entity"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "sea-orm",
@@ -2025,7 +2025,7 @@ dependencies = [
 
 [[package]]
 name = "migrations"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "entity",
@@ -3251,7 +3251,7 @@ dependencies = [
 
 [[package]]
 name = "services"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "entity",
  "sea-orm",
@@ -4185,7 +4185,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vinting-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "argon2",

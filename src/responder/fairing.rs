@@ -3,6 +3,7 @@ use rocket::{
     fairing::{self, Fairing, Info, Kind},
 };
 
+#[derive(Debug)]
 pub struct CatcherFairing;
 
 #[async_trait]

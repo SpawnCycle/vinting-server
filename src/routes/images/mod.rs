@@ -8,6 +8,7 @@ use rocket::{
     routes,
 };
 
+#[derive(Debug)]
 pub struct ImagesFairing;
 
 #[async_trait]

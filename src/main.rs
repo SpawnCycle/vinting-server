@@ -3,8 +3,7 @@ use vinting_server::{
     file_server::FileServerFairing, responder::CatcherFairing, routes::AllRouteFairing,
 };
 
-#[rocket::launch]
-fn launch() -> _ {
+fn build_rocket() -> rocket::Rocket<rocket::Build> {
     let _ = config::logger().expect("Couldn't properly initialize logging");
 
     config::rocket()
@@ -14,4 +13,13 @@ fn launch() -> _ {
         .attach(AllRouteFairing)
         .attach(DatabaseFairing)
         .attach(CatcherFairing)
+}
+
+//  when using `rocket::launch`, if anything fails it will panic,
+//  which will print out the RUST_BACKTRACE message (not ideal)
+#[rocket::main]
+async fn main() -> anyhow::Result<()> {
+    let _ = build_rocket().launch().await?;
+
+    Ok(())
 }

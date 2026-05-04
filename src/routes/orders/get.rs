@@ -61,8 +61,6 @@ pub async fn from_user(
         .map(|m| OrderGetDto::with_product(m, &host).expect("The model should be properly loaded"))
         .collect::<Vec<_>>();
 
-    dbg!(&orders);
-
     Ok(Json(orders))
 }
 

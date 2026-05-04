@@ -23,6 +23,7 @@ use services::{
 
 use crate::responder::Responder;
 
+#[derive(Debug)]
 pub struct ProductFairing;
 
 #[async_trait]
@@ -69,7 +70,7 @@ where
     let c_service = CategoryService(db);
     let t_service = TagService(db);
 
-    for c_id in dto.categories.iter() {
+    for c_id in &dto.categories {
         let c = c_service
             .get_by_id(*c_id)
             .await?
@@ -79,7 +80,7 @@ where
         am = am.add_category(c.into_active_model());
     }
 
-    for t_id in dto.tags.iter() {
+    for t_id in &dto.tags {
         let t = t_service
             .get_by_id(*t_id)
             .await?
@@ -89,7 +90,7 @@ where
         am = am.add_tag(t.into_active_model());
     }
 
-    for i_id in dto.images.iter() {
+    for i_id in &dto.images {
         let i = Image::find_by_id(*i_id)
             .filter(image::Column::UserId.eq(uid))
             .service_filter::<ImageService<DbConn>>()

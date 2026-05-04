@@ -16,6 +16,7 @@ use sea_orm::{
 
 use crate::constants::ADMIN_EMAIL;
 
+#[derive(Debug)]
 pub struct DatabaseFairing;
 
 #[async_trait]
@@ -49,7 +50,7 @@ impl Fairing for DatabaseFairing {
         }
 
         match migrations::Migrator.up(&db, None).await {
-            Ok(_) => Ok(r.manage(db)),
+            Ok(()) => Ok(r.manage(db)),
             Err(err) => {
                 log::error!("There was an error while running migrations: {err}");
                 Err(r)

@@ -9,6 +9,7 @@ use crate::constants::AdminEmail;
 
 use super::{ADMIN_EMAIL, JWT_SECRET};
 
+#[derive(Debug)]
 pub struct LazyProcFairing;
 
 #[async_trait]

@@ -45,4 +45,5 @@ pub static ADMIN_EMAIL: LazyLock<Option<String>> =
 
 /// The type in which rocket manages the admin email
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct AdminEmail(pub Option<String>);

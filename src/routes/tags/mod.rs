@@ -9,6 +9,7 @@ use rocket::{
     routes,
 };
 
+#[derive(Debug)]
 pub struct TagsFairing;
 
 #[async_trait]

@@ -42,6 +42,8 @@ pub async fn seed_db(db: &DbConn) -> Result<(), DbErr> {
     Ok(())
 }
 
+// passing by value is more convenient here
+#[allow(clippy::needless_pass_by_value)]
 fn make_user(
     name: impl ToString,
     email: impl ToString,

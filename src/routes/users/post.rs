@@ -36,10 +36,10 @@ pub async fn signup(
     let db = db.inner();
     let user = data.into_inner();
     let host = construct_host(host);
-    let email = user.email.to_owned();
+    let email = user.email.clone();
     let service = UserService(db);
 
-    if service.exists_by_email_all(user.email.to_owned()).await? {
+    if service.exists_by_email_all(user.email.clone()).await? {
         return Err(Responder::conflict("A user with that email already exists"));
     }
 

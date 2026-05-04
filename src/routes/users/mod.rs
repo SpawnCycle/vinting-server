@@ -11,6 +11,7 @@ use rocket::{
     routes,
 };
 
+#[derive(Debug)]
 pub struct UsersFairing;
 
 #[async_trait]

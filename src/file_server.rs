@@ -8,6 +8,7 @@ use tokio::fs::{create_dir, try_exists};
 
 use crate::routable_file_server::get_root_regardless;
 
+#[derive(Debug)]
 pub struct FileServerFairing;
 
 #[async_trait]
@@ -28,14 +29,12 @@ impl Fairing for FileServerFairing {
 }
 
 async fn try_mount_web(r: Rocket<Build>) -> Result<Rocket<Build>, Rocket<Build>> {
-    match try_exists("./web/").await.unwrap_or(false) {
-        true => Ok(r
-            .mount("/", FileServer::from("./web"))
-            .mount("/", routes![get_root_regardless])),
-        false => {
-            log::error!("The 'web' directory is not present, nothing to host");
-            Err(r)
-        }
+    if try_exists("./web/").await.unwrap_or(false) {
+        Ok(r.mount("/", FileServer::from("./web"))
+            .mount("/", routes![get_root_regardless]))
+    } else {
+        log::error!("The 'web' directory is not present, nothing to host");
+        Err(r)
     }
 }
 

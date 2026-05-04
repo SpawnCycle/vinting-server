@@ -7,6 +7,7 @@ pub fn get_jwt_key() -> &'static str {
 }
 
 // Will do for now, the proper way would be to check the given host against a whitelist
+#[must_use]
 pub fn construct_host(_host: &Host<'_>) -> String {
     "http://localhost:8000".to_string()
 }

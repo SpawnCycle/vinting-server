@@ -5,6 +5,7 @@ use sea_orm::{
     QueryFilter,
 };
 
+#[derive(Debug)]
 pub struct ProductService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
 impl<C: ServiceConnection> ProductService<'_, C> {

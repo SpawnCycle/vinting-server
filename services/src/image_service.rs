@@ -4,6 +4,7 @@ use sea_orm::{
     ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait, QueryFilter, SelectExt,
 };
 
+#[derive(Debug)]
 pub struct ImageService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
 impl<C: ServiceConnection> ImageService<'_, C> {

@@ -5,6 +5,7 @@ pub mod constants;
 
 pub use sea_orm_migration::*;
 
+#[derive(Debug)]
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -22,6 +23,7 @@ pub mod testing {
 
     pub use sea_orm_migration::*;
 
+    #[derive(Debug)]
     pub struct TestMigrator;
 
     #[async_trait::async_trait]

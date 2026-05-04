@@ -4,6 +4,9 @@ use sea_orm::{ActiveValue::Set, DbConn, DbErr, TransactionTrait};
 
 use crate::routes::{CategoriesFairing, UsersFairing};
 
+/// # Errors
+///
+/// Returns the error produced by `sea-orm`
 pub async fn db() -> Result<DbConn, DbErr> {
     let db = super::db().await?;
 
@@ -52,6 +55,8 @@ pub async fn seed_db(db: &DbConn) -> Result<(), DbErr> {
     Ok(())
 }
 
+// passing by value is more convenient here
+#[allow(clippy::needless_pass_by_value)]
 fn make_category(name: impl ToString) -> category::ActiveModelEx {
     category::ActiveModel {
         name: Set(name.to_string()),

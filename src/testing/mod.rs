@@ -1,3 +1,9 @@
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::unused_async
+)]
+
 pub mod category;
 pub mod tag;
 pub mod user;
@@ -23,8 +29,6 @@ pub async fn db() -> Result<DbConn, DbErr> {
     Ok(db)
 }
 
-// admin is id 1
-// user is id 2
 pub async fn setup_users(db: &DbConn) -> Result<(), DbErr> {
     migrations::testing::TestMigrator.up(db, None).await?;
 

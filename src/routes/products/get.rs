@@ -122,9 +122,9 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
     if let Some(s) = filters.query {
         q = q.filter(
             Condition::any()
-                .add(product::Column::Name.like(s.to_owned()))
-                .add(product::Column::Description.like(s.to_owned()))
-                .add(product::Column::Brand.like(s.to_owned())),
+                .add(product::Column::Name.like(s.clone()))
+                .add(product::Column::Description.like(s.clone()))
+                .add(product::Column::Brand.like(s.clone())),
         );
     }
 
@@ -133,27 +133,15 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
     }
 
     if let Some(s) = filters.sizes {
-        let mut cond = Condition::any();
-        for size in s {
-            cond = cond.add(product::Column::Size.eq(size));
-        }
-        q = q.filter(cond);
+        q = q.filter(product::Column::Size.is_in(s));
     }
 
     if let Some(c) = filters.colors {
-        let mut cond = Condition::any();
-        for color in c {
-            cond = cond.add(product::Column::Color.eq(color));
-        }
-        q = q.filter(cond);
+        q = q.filter(product::Column::Color.is_in(c));
     }
 
     if let Some(c) = filters.conditions {
-        let mut cond = Condition::any();
-        for condition in c {
-            cond = cond.add(product::Column::Condition.eq(condition));
-        }
-        q = q.filter(cond);
+        q = q.filter(product::Column::Condition.is_in(c));
     }
 
     if let Some(c) = filters.categories {
@@ -168,13 +156,11 @@ async fn get_matching_ids(filters: ProductFilter, db: &DbConn) -> Result<IdPagin
         None | Some(ProductSort::Date) => product::Column::CreatedAt,
         Some(ProductSort::Price) => product::Column::Price,
     };
-    match filters.asc {
-        true => {
-            q = q.order_by_asc(order_col);
-        }
-        false => {
-            q = q.order_by_desc(order_col);
-        }
+
+    if filters.asc {
+        q = q.order_by_asc(order_col);
+    } else {
+        q = q.order_by_desc(order_col);
     }
 
     // wish I could filter with a join inside of a loader, but alas it is not a thing,

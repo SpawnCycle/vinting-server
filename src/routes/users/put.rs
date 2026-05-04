@@ -33,7 +33,7 @@ pub async fn one(
     }
 
     if let Some(email) = user_dto.email.clone()
-        && service.exists_by_email_all(email.to_owned()).await?
+        && service.exists_by_email_all(email.clone()).await?
         // check if the caller is actually changing the email
         && email.to_string() != user.email
     {

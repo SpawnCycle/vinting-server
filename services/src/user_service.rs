@@ -7,6 +7,7 @@ use sea_orm::{
     prelude::async_trait::async_trait,
 };
 
+#[derive(Debug)]
 pub struct UserService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
 impl<C: ServiceConnection> UserService<'_, C> {

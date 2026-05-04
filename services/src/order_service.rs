@@ -5,6 +5,7 @@ use sea_orm::{
     QueryFilter, SelectExt,
 };
 
+#[derive(Debug)]
 pub struct OrderService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
 fn load_order() -> order::EntityLoader {

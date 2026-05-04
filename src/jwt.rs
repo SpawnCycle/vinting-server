@@ -25,7 +25,7 @@ use crate::{
 };
 
 /// This is the struct used inside the JWT
-/// It implements FromRequest, so you can check if a user is signed in with the following:
+/// It implements `FromRequest`, so you can check if a user is signed in with the following:
 /// ```no_run
 /// use rocket::get;
 /// use vinting_server::jwt::JwtClaims;
@@ -40,7 +40,7 @@ use crate::{
 /// ```
 /// But since the db is not accessable from within the request,
 /// you still need to verify if the user exists
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct JwtClaims {
     pub exp: i64,
     pub iat: i64,
@@ -58,6 +58,7 @@ pub enum JwtError {
 }
 
 impl JwtClaims {
+    #[must_use]
     pub fn new(uid: i32) -> Self {
         let now = Local::now();
         let iat = now.timestamp();
@@ -66,6 +67,9 @@ impl JwtClaims {
         JwtClaims { exp, iat, uid }
     }
 
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm`
     pub async fn has_role<C>(&self, db: &C, role: &str) -> Result<bool, DbErr>
     where
         C: ConnectionTrait + Send,
@@ -81,6 +85,10 @@ impl JwtClaims {
         jar.remove(JWT_KEY);
     }
 
+    /// # Errors
+    ///
+    /// Errors if the configuration is incorrect,
+    /// or if the specified format and the format of the key don't match
     pub fn encode(self) -> Result<String, jsonwebtoken::errors::Error> {
         encode(
             &Header::default(),
@@ -89,6 +97,9 @@ impl JwtClaims {
         )
     }
 
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm`
     pub async fn exists_or_remove<C>(&self, db: &C, jar: &CookieJar<'_>) -> Result<bool, DbErr>
     where
         C: ConnectionTrait + Send,
@@ -100,6 +111,10 @@ impl JwtClaims {
         Ok(exists)
     }
 
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm` wrapped in `Responder`,
+    /// or `Responder::unauthorized` if the token is invalid
     pub async fn exists_or_unauthorized<C>(
         &self,
         db: &C,
@@ -117,6 +132,9 @@ impl JwtClaims {
         Ok(())
     }
 
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm`
     pub async fn exists<C>(&self, db: &C) -> Result<bool, DbErr>
     where
         C: ConnectionTrait + Send,
@@ -128,6 +146,10 @@ impl JwtClaims {
     }
 
     /// fetches the user from the db using the filters defined in `UserService`
+    ///
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm`
     pub async fn fetch<C>(&self, db: &C) -> Result<Option<user::Model>, DbErr>
     where
         C: ConnectionTrait + Send,
@@ -139,11 +161,19 @@ impl JwtClaims {
     }
 
     /// fetches the user from the db without any filters
+    ///
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm`
     pub async fn fetch_always(&self, db: &DbConn) -> Result<Option<user::Model>, DbErr> {
         user::Entity::find_by_id(self.uid).one(db).await
     }
 
     /// fetches the user from the db using the filters defined in `UserService`
+    ///
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm`
     pub async fn load(
         &self,
         db: &DbConn,
@@ -156,6 +186,10 @@ impl JwtClaims {
     }
 
     /// fetches the user from the db without any filters
+    ///
+    /// # Errors
+    ///
+    /// Returns the error produced by `sea-orm`
     pub async fn load_always(
         &self,
         db: &DbConn,
@@ -178,9 +212,9 @@ impl<'a> FromRequest<'a> for JwtClaims {
         };
         let jwt = jwt.to_string();
 
-        let jwt = jwt.clone().split_once(";").map_or(jwt, |s| s.0.to_string());
+        let jwt = jwt.clone().split_once(';').map_or(jwt, |s| s.0.to_string());
 
-        let Some((_key, jwt)) = jwt.split_once("=") else {
+        let Some((_key, jwt)) = jwt.split_once('=') else {
             jar.remove(JWT_KEY);
             return Outcome::Error((
                 Status::Unauthorized,

@@ -20,10 +20,11 @@ const FILE_PATH: &str = "./logs/vinting.log";
 const ROLLER_PATTERN: &str = "./logs/archive/vinting.{}.log";
 const ARCHIVE_COUNT: u32 = 10;
 
+/// # Errors
+///
+/// Will error if the configuration is incorrect
 pub fn logger() -> anyhow::Result<log4rs::Handle> {
-    let file_level = if cfg!(test) {
-        LevelFilter::Warn
-    } else if cfg!(debug_assertions) {
+    let file_level = if cfg!(debug_assertions) {
         LevelFilter::Trace
     } else {
         LevelFilter::Info
@@ -61,18 +62,4 @@ pub fn logger() -> anyhow::Result<log4rs::Handle> {
     let handle = log4rs::init_config(config).context("Couldn't configure the logger")?;
 
     Ok(handle)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn logger_set_up() -> anyhow::Result<()> {
-        let res = logger();
-
-        assert!(res.is_ok());
-
-        Ok(())
-    }
 }

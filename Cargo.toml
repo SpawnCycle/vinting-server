@@ -17,6 +17,15 @@ unwrap_used = "deny"
 needless_match = "deny"
 redundant_pattern = "deny"
 
+print_stdout = "deny"
+print_stderr = "deny"
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+
+[lints]
+workspace = true
+
 [build-dependencies]
 cargo-build = "1.0.0"
 
@@ -28,7 +37,7 @@ sea-orm = { version = "2.0.0-rc.38", features = [
   "entity-registry",
   "schema-sync",
 ] }
-tokio = { version = "1.52.1", features = ["full"] }
+tokio = { version = "1.52.2", features = ["full"] }
 anyhow = "1.0.102"
 thiserror = "2.0.18"
 serde = "1.0.228"
@@ -57,7 +66,7 @@ rocket = { version = "0.5.1", features = ["json"] }
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 chrono = "0.4.44"
 dotenvy = "0.15.7"
-const-hex = "1.18.1"
+const-hex = "1.19.0"
 sha2 = "0.11.0"
 log4rs = "1.4.0"
 

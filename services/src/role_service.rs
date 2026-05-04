@@ -2,6 +2,7 @@ use crate::service_trait::{ServiceConnection, ServiceTrait};
 use entity::role;
 use sea_orm::{ColumnTrait, Condition, DbConn, DbErr, EntityTrait, PrimaryKeyTrait};
 
+#[derive(Debug)]
 pub struct RoleService<'a, C: ServiceConnection = DbConn>(pub &'a C);
 
 impl<C: ServiceConnection> ServiceTrait for RoleService<'_, C> {

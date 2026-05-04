@@ -22,7 +22,7 @@ pub struct ErrorMessage {
 }
 
 impl ErrorMessage {
-    pub fn new(code: u16, message: impl ToString) -> Self {
+    pub fn new(code: u16, message: &(impl ToString + ?Sized)) -> Self {
         let now = Utc::now();
         Self {
             code,
@@ -61,6 +61,8 @@ impl Display for Responder {
 
 impl Error for Responder {}
 
+// passing by value is more convenient here
+#[allow(clippy::needless_pass_by_value)]
 impl Responder {
     pub fn bad_request(msg: impl ToString) -> Self {
         http_err!(BadRequest, 403, msg)
@@ -94,7 +96,7 @@ impl From<DbErr> for Responder {
 impl From<io::Error> for Responder {
     fn from(value: io::Error) -> Self {
         if cfg!(debug_assertions) {
-            Self::server_error(format!("There was an io error: {}", value))
+            Self::server_error(format!("There was an io error: {value}"))
         } else {
             Self::server_error("There was an error while saving the file")
         }

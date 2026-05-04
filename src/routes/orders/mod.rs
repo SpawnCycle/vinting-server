@@ -8,6 +8,7 @@ use rocket::{
     routes,
 };
 
+#[derive(Debug)]
 pub struct OrderFairing;
 
 #[async_trait]

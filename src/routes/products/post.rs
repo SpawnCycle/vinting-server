@@ -118,7 +118,7 @@ pub async fn form(
         am = am.add_tag(t);
     }
 
-    for img in data.images.iter_mut() {
+    for img in &mut data.images {
         let uri = save_image(img).await.map_err(|err| {
             Responder::server_error(if cfg!(debug_assertions) {
                 format!("There was an error while saving the file: {err}")
@@ -148,7 +148,7 @@ pub async fn form(
 
     trx.commit().await?;
 
-    Ok(Created::new(format!("{}/api/products/{id}", host)).body(dto.into()))
+    Ok(Created::new(format!("{host}/api/products/{id}")).body(dto.into()))
 }
 
 #[post("/", format = "application/json", data = "<data>")]
@@ -207,8 +207,7 @@ pub async fn order_product(
 
     if available_stock < ammount {
         return Err(Responder::bad_request(format!(
-            "You can't buy {} of a product which has {} available items",
-            ammount, available_stock
+            "You can't buy {ammount} of a product which has {available_stock} available items",
         )));
     }
 

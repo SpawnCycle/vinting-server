@@ -3,6 +3,7 @@ use rocket::{
     data::{Limits, ToByteUnit},
 };
 
+#[must_use]
 pub fn rocket() -> Rocket<Build> {
     let figment = rocket::Config::figment().merge(rocket::Config {
         port: 8000,

@@ -40,7 +40,7 @@ pub async fn one(
         let am = product
             .into_active_model()
             .into_ex()
-            .set_sold_stock(sold.saturating_sub(1));
+            .set_sold_stock(sold.saturating_sub(order.amount));
         let _ = p_service.update(am).await?;
     }
 
